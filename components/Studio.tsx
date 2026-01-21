@@ -47,6 +47,7 @@ function Studio() {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [code, setCode] = useState<string>(INITIAL_CODE);
   const [selectedCompId, setSelectedCompId] = useState<string | null>(null);
+  const [selectedWireId, setSelectedWireId] = useState<string | null>(null);
 
   // Wiring State
   const [selectedPin, setSelectedPin] = useState<{
@@ -106,17 +107,49 @@ function Studio() {
     );
   };
 
-  const deleteComponent = () => {
-    if (!selectedCompId) return;
-    setComponents((prev) => prev.filter((c) => c.uid !== selectedCompId));
-    setConnections((prev) =>
-      prev.filter(
-        (c) =>
-          c.fromCompUid !== selectedCompId && c.toCompUid !== selectedCompId,
-      ),
-    );
-    setSelectedCompId(null);
+  // Helper: Orthogonal Routing (Manhattan)
+  const getOrthogonalPath = (
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+  ) => {
+    const midX = (x1 + x2) / 2;
+    return `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`;
   };
+
+  const deleteComponent = () => {
+    if (selectedCompId) {
+      setComponents((prev) => prev.filter((c) => c.uid !== selectedCompId));
+      setConnections((prev) =>
+        prev.filter(
+          (c) =>
+            c.from.compUid !== selectedCompId &&
+            c.to.compUid !== selectedCompId,
+        ),
+      );
+      setSelectedCompId(null);
+    }
+  };
+
+  const deleteWire = () => {
+    if (selectedWireId) {
+      setConnections((prev) => prev.filter((c) => c.id !== selectedWireId));
+      setSelectedWireId(null);
+    }
+  };
+
+  // Handle Delete Key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (selectedCompId) deleteComponent();
+        if (selectedWireId) deleteWire();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedCompId, selectedWireId]);
 
   const handlePinClick = (
     compUid: string,
@@ -129,13 +162,16 @@ function Studio() {
         setSelectedPin(null); // Deselect
         return;
       }
-      // Create Connection
+      // Create Connection (New Structure)
       const newConnection: Connection = {
         id: Math.random().toString(36).substr(2, 9),
-        fromCompUid: selectedPin.compUid,
-        fromPinId: selectedPin.pinId,
-        toCompUid: compUid,
-        toPinId: pinId,
+        from: {
+          type: "pin",
+          compUid: selectedPin.compUid,
+          pinId: selectedPin.pinId,
+        },
+        to: { type: "pin", compUid: compUid, pinId: pinId },
+        waypoints: [],
         color: ["#ef4444", "#22c55e", "#3b82f6", "#eab308"][
           Math.floor(Math.random() * 4)
         ],
@@ -381,34 +417,30 @@ function Studio() {
       setConnections([
         {
           id: "w1",
-          fromCompUid: "arduino-1",
-          fromPinId: "D5",
-          toCompUid: "driver-1",
-          toPinId: "IN1",
+          from: { type: "pin", compUid: "arduino-1", pinId: "D5" },
+          to: { type: "pin", compUid: "driver-1", pinId: "IN1" },
+          waypoints: [],
           color: "#22c55e",
         },
         {
           id: "w2",
-          fromCompUid: "arduino-1",
-          fromPinId: "D6",
-          toCompUid: "driver-1",
-          toPinId: "IN2",
+          from: { type: "pin", compUid: "arduino-1", pinId: "D6" },
+          to: { type: "pin", compUid: "driver-1", pinId: "IN2" },
+          waypoints: [],
           color: "#ef4444",
         },
         {
           id: "w3",
-          fromCompUid: "arduino-1",
-          fromPinId: "D9",
-          toCompUid: "driver-1",
-          toPinId: "IN3",
+          from: { type: "pin", compUid: "arduino-1", pinId: "D9" },
+          to: { type: "pin", compUid: "driver-1", pinId: "IN3" },
+          waypoints: [],
           color: "#3b82f6",
         },
         {
           id: "w4",
-          fromCompUid: "arduino-1",
-          fromPinId: "D10",
-          toCompUid: "driver-1",
-          toPinId: "IN4",
+          from: { type: "pin", compUid: "arduino-1", pinId: "D10" },
+          to: { type: "pin", compUid: "driver-1", pinId: "IN4" },
+          waypoints: [],
           color: "#eab308",
         },
       ]);
@@ -508,34 +540,95 @@ function Studio() {
         {/* Workspace + Split Pane */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left/Main Panel: Workspace or Component Library */}
-          <div className="flex-1 relative bg-gray-950 grid-pattern overflow-hidden">
+          <div
+            className="flex-1 relative bg-gray-950 grid-pattern overflow-hidden"
+            onClick={() => {
+              setSelectedCompId(null);
+              setSelectedWireId(null);
+              setSelectedPin(null);
+            }}
+          >
             {/* Draw Connections (SVG Layer) */}
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
               {connections.map((conn) => {
                 const fromComp = components.find(
-                  (c) => c.uid === conn.fromCompUid,
+                  (c) => c.uid === conn.from.compUid,
                 );
-                const toComp = components.find((c) => c.uid === conn.toCompUid);
-                if (!fromComp || !toComp) return null;
-                const fromPin = fromComp.pins.find(
-                  (p) => p.id === conn.fromPinId,
+                const toComp = components.find(
+                  (c) => c.uid === conn.to.compUid,
                 );
-                const toPin = toComp.pins.find((p) => p.id === conn.toPinId);
-                if (!fromPin || !toPin) return null;
 
-                const x1 = fromComp.position.x + fromPin.x;
-                const y1 = fromComp.position.y + fromPin.y;
-                const x2 = toComp.position.x + toPin.x;
-                const y2 = toComp.position.y + toPin.y;
+                let x1 = 0,
+                  y1 = 0,
+                  x2 = 0,
+                  y2 = 0;
+
+                // Resolve Start Point
+                if (conn.from.type === "pin" && fromComp) {
+                  const pin = fromComp.pins.find(
+                    (p) => p.id === conn.from.pinId,
+                  );
+                  if (pin) {
+                    x1 = fromComp.position.x + pin.x;
+                    y1 = fromComp.position.y + pin.y;
+                  }
+                } else if (
+                  conn.from.type === "point" &&
+                  conn.from.x !== undefined
+                ) {
+                  x1 = conn.from.x;
+                  y1 = conn.from.y || 0;
+                }
+
+                // Resolve End Point
+                if (conn.to.type === "pin" && toComp) {
+                  const pin = toComp.pins.find((p) => p.id === conn.to.pinId);
+                  if (pin) {
+                    x2 = toComp.position.x + pin.x;
+                    y2 = toComp.position.y + pin.y;
+                  }
+                } else if (
+                  conn.to.type === "point" &&
+                  conn.to.x !== undefined
+                ) {
+                  x2 = conn.to.x;
+                  y2 = conn.to.y || 0;
+                }
+
+                if (x1 === 0 && y1 === 0 && x2 === 0 && y2 === 0) return null;
+
+                const isSelected = selectedWireId === conn.id;
+                const pathD = getOrthogonalPath(x1, y1, x2, y2);
 
                 return (
-                  <g key={conn.id}>
+                  <g
+                    key={conn.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedWireId(conn.id);
+                      setSelectedCompId(null); // Deselect component
+                    }}
+                    className="cursor-pointer group pointer-events-auto"
+                  >
+                    {/* Invisible Hit Area (Thicker) */}
                     <path
-                      d={`M ${x1} ${y1} C ${x1 + 50} ${y1}, ${x2 - 50} ${y2}, ${x2} ${y2}`}
-                      stroke={conn.color}
-                      strokeWidth="3"
+                      d={pathD}
+                      stroke="transparent"
+                      strokeWidth="15"
                       fill="none"
-                      opacity="0.8"
+                    />
+                    {/* Visible Wire */}
+                    <path
+                      d={pathD}
+                      stroke={isSelected ? "#fff" : conn.color}
+                      strokeWidth={isSelected ? "4" : "3"}
+                      fill="none"
+                      className="transition-all"
+                      style={{
+                        filter: isSelected
+                          ? "drop-shadow(0 0 5px rgba(255,255,255,0.5))"
+                          : "none",
+                      }}
                     />
                     <circle cx={x1} cy={y1} r="3" fill={conn.color} />
                     <circle cx={x2} cy={y2} r="3" fill={conn.color} />
@@ -551,14 +644,21 @@ function Studio() {
                   y2={selectedPin.y}
                   stroke="white"
                   strokeDasharray="4"
-                  className="animate-pulse"
+                  className="animate-pulse pointer-events-none"
                 />
               )}
             </svg>
 
             {/* Components Layer */}
             {components.map((comp) => (
-              <div key={comp.uid} onClick={() => setSelectedCompId(comp.uid)}>
+              <div
+                key={comp.uid}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedCompId(comp.uid);
+                  setSelectedWireId(null);
+                }}
+              >
                 <WorkspaceComponent
                   component={comp}
                   onMove={moveComponent}
@@ -573,12 +673,85 @@ function Studio() {
             <div className="absolute bottom-4 left-4 pointer-events-none text-gray-500 text-xs">
               {selectedPin
                 ? "Select destination pin to connect..."
-                : "Drag components to move. Click pins to wire."}
+                : "Drag components to move. Click pins to wire. Click wires to edit."}
             </div>
+
+            {/* Wire Properties Panel */}
+            {selectedWireId && (
+              <div
+                className="absolute top-4 right-4 w-64 bg-gray-900/95 backdrop-blur border border-gray-700 rounded-xl shadow-2xl p-4 flex flex-col gap-3 z-30 animate-in fade-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex justify-between items-center mb-2 border-b border-gray-800 pb-2">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                    Wire Properties
+                  </h3>
+                  <button
+                    onClick={() => setSelectedWireId(null)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+
+                {(() => {
+                  const wire = connections.find((c) => c.id === selectedWireId);
+                  if (!wire) return null;
+                  return (
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-xs text-gray-400 uppercase">
+                          Color
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="color"
+                            value={wire.color}
+                            onChange={(e) => {
+                              setConnections((prev) =>
+                                prev.map((c) =>
+                                  c.id === wire.id
+                                    ? { ...c, color: e.target.value }
+                                    : c,
+                                ),
+                              );
+                            }}
+                            className="w-8 h-8 rounded cursor-pointer bg-transparent border-0 p-0"
+                          />
+                          <input
+                            type="text"
+                            value={wire.color}
+                            onChange={(e) => {
+                              setConnections((prev) =>
+                                prev.map((c) =>
+                                  c.id === wire.id
+                                    ? { ...c, color: e.target.value }
+                                    : c,
+                                ),
+                              );
+                            }}
+                            className="flex-1 bg-gray-950 border border-gray-700 rounded px-2 text-xs font-mono text-white"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        onClick={deleteWire}
+                        className="mt-2 flex items-center justify-center gap-2 w-full py-2 bg-red-900/20 hover:bg-red-900/40 text-red-400 rounded-lg transition-colors border border-red-900/50 text-xs font-bold uppercase"
+                      >
+                        <Trash2 size={14} /> Delete Wire
+                      </button>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
 
             {/* Library Drawer (Overlaid if active) */}
             {activeTab === "library" && (
-              <div className="absolute top-4 left-4 w-64 bg-gray-900/90 backdrop-blur border border-gray-700 rounded-xl shadow-2xl p-4 flex flex-col gap-3 max-h-[80%] overflow-y-auto z-30 animate-in fade-in slide-in-from-left-4 duration-200">
+              <div
+                className="absolute top-4 left-4 w-64 bg-gray-900/90 backdrop-blur border border-gray-700 rounded-xl shadow-2xl p-4 flex flex-col gap-3 max-h-[80%] overflow-y-auto z-30 animate-in fade-in slide-in-from-left-4 duration-200"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="flex justify-between items-center mb-2">
                   <h2 className="text-sm font-bold text-white uppercase tracking-wider">
                     Components
@@ -602,7 +775,10 @@ function Studio() {
 
             {/* Settings Panel (Overlaid if active) */}
             {showSettings && (
-              <div className="absolute top-4 left-4 w-80 bg-gray-900/95 backdrop-blur border border-gray-700 rounded-xl shadow-2xl p-4 flex flex-col gap-4 z-30 animate-in fade-in slide-in-from-left-4 duration-200">
+              <div
+                className="absolute top-4 left-4 w-80 bg-gray-900/95 backdrop-blur border border-gray-700 rounded-xl shadow-2xl p-4 flex flex-col gap-4 z-30 animate-in fade-in slide-in-from-left-4 duration-200"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="flex justify-between items-center">
                   <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                     <Key size={16} className="text-blue-400" />

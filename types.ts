@@ -31,12 +31,25 @@ export interface PlacedComponent extends ComponentData {
   position: { x: number; y: number };
 }
 
+// Wire Routing Types
+export interface WirePoint {
+  x: number;
+  y: number;
+}
+
+export interface ConnectionEndpoint {
+  type: 'pin' | 'point';
+  compUid?: string; // If 'pin'
+  pinId?: string; // If 'pin'
+  x?: number; // If 'point'
+  y?: number;
+}
+
 export interface Connection {
   id: string;
-  fromCompUid: string;
-  fromPinId: string;
-  toCompUid: string;
-  toPinId: string;
+  from: ConnectionEndpoint;
+  to: ConnectionEndpoint;
+  waypoints: WirePoint[]; // For custom routing
   color: string;
 }
 
