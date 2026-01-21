@@ -33,24 +33,24 @@ export const COMPONENT_LIBRARY: ComponentData[] = [
       { id: 'D0', name: 'RX<0', type: 'digital', x: 236, y: 10 },
 
       // --- Analog & Power Low Side (Bottom, Left to Right) ---
-      // Power Header
+      // Power Header (Left Side)
       // NC, IOREF, RESET, 3V3, 5V, GND, GND, VIN
-      { id: 'NC', name: 'NC', type: 'digital', x: 170, y: 175 }, // Placeholder/Empty
-      { id: 'IOREF', name: 'IOREF', type: 'power', x: 158, y: 175 },
-      { id: 'RESET', name: 'RESET', type: 'digital', x: 146, y: 175 },
-      { id: '3V3', name: '3.3V', type: 'power', x: 134, y: 175 },
-      { id: '5V', name: '5V', type: 'power', x: 122, y: 175 },
-      { id: 'GND_1', name: 'GND', type: 'ground', x: 110, y: 175 },
-      { id: 'GND_2', name: 'GND', type: 'ground', x: 98, y: 175 },
-      { id: 'VIN', name: 'VIN', type: 'power', x: 86, y: 175 },
+      { id: 'NC', name: 'NC', type: 'digital', x: 20, y: 175 }, 
+      { id: 'IOREF', name: 'IOREF', type: 'power', x: 32, y: 175 },
+      { id: 'RESET', name: 'RESET', type: 'digital', x: 44, y: 175 },
+      { id: '3V3', name: '3.3V', type: 'power', x: 56, y: 175 },
+      { id: '5V', name: '5V', type: 'power', x: 68, y: 175 },
+      { id: 'GND_1', name: 'GND', type: 'ground', x: 80, y: 175 },
+      { id: 'GND_2', name: 'GND', type: 'ground', x: 92, y: 175 },
+      { id: 'VIN', name: 'VIN', type: 'power', x: 104, y: 175 },
 
-      // Analog Header Gap
-      { id: 'A0', name: 'A0', type: 'analog', x: 62, y: 175 },
-      { id: 'A1', name: 'A1', type: 'analog', x: 50, y: 175 },
-      { id: 'A2', name: 'A2', type: 'analog', x: 38, y: 175 },
-      { id: 'A3', name: 'A3', type: 'analog', x: 26, y: 175 },
-      { id: 'A4', name: 'A4', type: 'analog', x: 14, y: 175 },
-      { id: 'A5', name: 'A5', type: 'analog', x: 2, y: 175 },
+      // Analog Header (Right Side)
+      { id: 'A0', name: 'A0', type: 'analog', x: 140, y: 175 },
+      { id: 'A1', name: 'A1', type: 'analog', x: 152, y: 175 },
+      { id: 'A2', name: 'A2', type: 'analog', x: 164, y: 175 },
+      { id: 'A3', name: 'A3', type: 'analog', x: 176, y: 175 },
+      { id: 'A4', name: 'A4', type: 'analog', x: 188, y: 175 },
+      { id: 'A5', name: 'A5', type: 'analog', x: 200, y: 175 },
 
       // --- ICSP Headers (Mid-board) ---
       // ICSP (Main, near AtMega328)

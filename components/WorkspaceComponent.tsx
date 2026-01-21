@@ -309,12 +309,11 @@ const ArduinoVisual: React.FC<{
         {/* Top Far Right (Digital Low) D7(152) -> D0(236) */}
         <rect x="147" y="5" width="95" height="15" fill="#111827" />
 
-        {/* Bottom Power (NC(170) -> VIN(86)) - Note REVERSE order in constants for alignment */}
-        {/* Wait, constants.ts: NC=170, VIN=86. So width is (170-86)=84 + padding */}
-        <rect x="81" y={170} width="95" height="15" fill="#111827" />
+        {/* Bottom Power (Left) (NC(20) -> VIN(104)) */}
+        <rect x="15" y={170} width="95" height="15" fill="#111827" />
 
-        {/* Bottom Analog (A0(62) -> A5(2)) */}
-        <rect x="-3" y={170} width="70" height="15" fill="#111827" />
+        {/* Bottom Analog (Right) (A0(140) -> A5(200)) */}
+        <rect x="135" y={170} width="70" height="15" fill="#111827" />
 
         {/* ICSP Header (2x3 Pins) - Main */}
         <rect
@@ -350,7 +349,7 @@ const ArduinoVisual: React.FC<{
           DIGITAL (PWM~)
         </text>
         <text
-          x={125}
+          x={60}
           y={165}
           fill="white"
           fontSize="8"
@@ -360,7 +359,7 @@ const ArduinoVisual: React.FC<{
           POWER
         </text>
         <text
-          x={35}
+          x={170}
           y={165}
           fill="white"
           fontSize="8"
