@@ -648,30 +648,6 @@ function Studio() {
                   </p>
                 </div>
 
-                {/* Model Selector */}
-                <div className="space-y-2">
-                  <label className="text-xs text-gray-400 uppercase tracking-wide">
-                    AI Model
-                  </label>
-                  <select
-                    value={selectedModel}
-                    onChange={(e) =>
-                      handleModelChange(e.target.value as GeminiModelId)
-                    }
-                    className="w-full bg-gray-950 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white focus:border-blue-500 focus:outline-none cursor-pointer"
-                  >
-                    {GEMINI_MODELS.map((model) => (
-                      <option key={model.id} value={model.id}>
-                        {model.name} - {model.description}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-gray-500">
-                    Different models have different rate limits and
-                    capabilities.
-                  </p>
-                </div>
-
                 {apiKey && (
                   <div className="flex items-center gap-2 text-xs text-green-400">
                     <span className="w-2 h-2 bg-green-400 rounded-full"></span>
@@ -797,6 +773,22 @@ function Studio() {
                       >
                         <Send size={16} />
                       </button>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs text-gray-500">Model:</span>
+                      <select
+                        value={selectedModel}
+                        onChange={(e) =>
+                          handleModelChange(e.target.value as GeminiModelId)
+                        }
+                        className="flex-1 bg-gray-950 border border-gray-700 rounded-lg py-1 px-2 text-xs text-gray-300 focus:border-blue-500 focus:outline-none cursor-pointer"
+                      >
+                        {GEMINI_MODELS.map((model) => (
+                          <option key={model.id} value={model.id}>
+                            {model.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
