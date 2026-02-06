@@ -17,7 +17,9 @@ export const generateCodeHelp = async (
   apiKey: string, 
   model: GeminiModelId,
   prompt: string, 
-  currentCode: string
+  currentCode: string,
+  components: any[] = [],
+  connections: any[] = []
 ): Promise<string> => {
   if (!apiKey) {
     return "⚠️ Please enter your Gemini API key in the settings panel to use AI features.";
@@ -25,20 +27,57 @@ export const generateCodeHelp = async (
 
   try {
     const ai = createAIClient(apiKey);
+    
+    // Serialize state for the AI
+    const stateContext = JSON.stringify({
+      components: components.map(c => ({ 
+        uid: c.uid, 
+        id: c.id, 
+        name: c.name, 
+        pins: c.pins.map((p: any) => p.id),
+        position: c.position 
+      })),
+      connections: connections.map(c => ({
+        from: c.from,
+        to: c.to,
+        color: c.color
+      }))
+    }, null, 2);
+
     const fullPrompt = `
-      You are an expert Robotics and Arduino Engineer.
-      The user is working in a simulated environment called RoboLab.
+      You are an expert Robotics and Arduino Engineer with "God View" control over a virtual studio.
       
-      Current Code:
+      You can Answer questions, Write Code, and directly MODIFY the circuit.
+      
+      CURRENT STUDIO STATE:
+      ${stateContext}
+      
+      USER'S CURRENT CODE EDITOR CONTENT:
       \`\`\`javascript
       ${currentCode}
       \`\`\`
       
-      User Question: ${prompt}
+      USER REQUEST: ${prompt}
       
-      Provide a helpful response. If the user asks for code, provide valid JavaScript that uses standard Arduino naming conventions (digitalWrite, analogWrite, pinMode, delay, loop, setup).
-      Explain the concepts briefly.
-      Keep the response concise and formatted with Markdown.
+      --- INSTRUCTIONS ---
+      1. If the user asks for code, provide it in a markdown block.
+      2. If the user asks to CHANGE the circuit (add components, wire things), or UPDATE the code directly, output a JSON BLOCK at the end of your response.
+      
+      JSON ACTION FORMAT:
+      \`\`\`json
+      {
+        "action": "UPDATE_CIRCUIT", 
+        "operations": [
+          { "type": "ADD_COMPONENT", "componentId": "led-red", "x": 300, "y": 300 },
+          { "type": "CONNECT", "from": { "compUid": "arduino-1", "pinId": "D13" }, "to": { "compUid": "LAST_ADDED", "pinId": "POS" }, "color": "red" },
+          { "type": "UPDATE_CODE", "targetCompUid": "arduino-1", "code": "// New code here..." }
+        ]
+      }
+      \`\`\`
+      
+      For 'CONNECT', 'from' and 'to' must match the component UIDs in the state OR use "LAST_ADDED" to refer to a component you just created in the same block.
+      
+      Keep explanations concise/helpful.
     `;
 
     const response = await ai.models.generateContent({

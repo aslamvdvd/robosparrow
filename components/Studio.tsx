@@ -7,6 +7,7 @@ import {
   ConsoleLog,
   SimulationState,
   LogType,
+  ComponentType, // Import ComponentType
 } from "../types";
 import ComponentCard from "./ComponentCard";
 import WorkspaceComponent from "./WorkspaceComponent";
@@ -48,6 +49,29 @@ function Studio() {
   const [code, setCode] = useState<string>(INITIAL_CODE);
   const [selectedCompId, setSelectedCompId] = useState<string | null>(null);
   const [selectedWireId, setSelectedWireId] = useState<string | null>(null);
+
+  // Multi-MCU State
+  const [activeMcuUid, setActiveMcuUid] = useState<string | null>(null);
+
+  // Update code when active MCU changes
+  useEffect(() => {
+    if (activeMcuUid) {
+      const mcu = components.find((c) => c.uid === activeMcuUid);
+      if (mcu && mcu.code) {
+        setCode(mcu.code);
+      }
+    }
+  }, [activeMcuUid, components]);
+
+  // Save code to active MCU
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+    if (activeMcuUid) {
+      setComponents((prev) =>
+        prev.map((c) => (c.uid === activeMcuUid ? { ...c, code: newCode } : c)),
+      );
+    }
+  };
 
   // Wiring State
   const [selectedPin, setSelectedPin] = useState<{
@@ -343,7 +367,89 @@ function Studio() {
     }
     setIsAiLoading(true);
 
-    const response = await generateCodeHelp(apiKey, selectedModel, msg, code);
+    // Pass full state to AI
+    const response = await generateCodeHelp(
+      apiKey,
+      selectedModel,
+      msg,
+      code,
+      components,
+      connections,
+    );
+
+    // Parse JSON Actions (Agentic Capabilities)
+    try {
+      const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        const actionData = JSON.parse(jsonMatch[1]);
+        if (
+          actionData.action === "UPDATE_CIRCUIT" &&
+          Array.isArray(actionData.operations)
+        ) {
+          console.log("Executing Agent Actions:", actionData.operations);
+
+          const newComponents = [...components];
+          const newConnections = [...connections];
+          let lastAddedUid = "";
+
+          for (const op of actionData.operations) {
+            if (op.type === "ADD_COMPONENT") {
+              const libComp = COMPONENT_LIBRARY.find(
+                (c) => c.id === op.componentId,
+              );
+              if (libComp) {
+                lastAddedUid = Math.random().toString(36).substr(2, 9);
+                newComponents.push({
+                  ...libComp,
+                  uid: lastAddedUid,
+                  position: { x: op.x || 300, y: op.y || 300 },
+                  // If it's an MCU, give it default code
+                  code:
+                    libComp.type === ComponentType.MICROCONTROLLER
+                      ? INITIAL_CODE
+                      : undefined,
+                });
+              }
+            } else if (op.type === "CONNECT") {
+              const fromUid =
+                op.from.compUid === "LAST_ADDED"
+                  ? lastAddedUid
+                  : op.from.compUid;
+              const toUid =
+                op.to.compUid === "LAST_ADDED" ? lastAddedUid : op.to.compUid;
+
+              if (fromUid && toUid) {
+                newConnections.push({
+                  id: Math.random().toString(36).substr(2, 9),
+                  from: { type: "pin", compUid: fromUid, pinId: op.from.pinId },
+                  to: { type: "pin", compUid: toUid, pinId: op.to.pinId },
+                  waypoints: [],
+                  color: op.color || "#3b82f6",
+                });
+              }
+            } else if (op.type === "UPDATE_CODE") {
+              const targetUid =
+                op.targetCompUid === "LAST_ADDED"
+                  ? lastAddedUid
+                  : op.targetCompUid;
+              const targetMcu = newComponents.find((c) => c.uid === targetUid);
+              if (targetMcu) {
+                targetMcu.code = op.code;
+                // If we updated the currently active MCU, simplify update the editor too
+                if (targetUid === activeMcuUid) {
+                  setCode(op.code);
+                }
+              }
+            }
+          }
+          setComponents(newComponents);
+          setConnections(newConnections);
+          logToConsole("Agent modified the circuit.", "system");
+        }
+      }
+    } catch (e) {
+      console.error("Failed to parse Agent Action", e);
+    }
 
     setChatHistory((prev) => [...prev, { role: "ai", text: response }]);
     setIsAiLoading(false);
@@ -396,6 +502,7 @@ function Studio() {
         ...COMPONENT_LIBRARY[0],
         uid: "arduino-1",
         position: { x: 50, y: 50 },
+        code: INITIAL_CODE, // Initialize with default code
       };
       const driver = {
         ...COMPONENT_LIBRARY[1],
@@ -447,6 +554,9 @@ function Studio() {
           color: "#eab308",
         },
       ]);
+
+      // Default to the first arduino
+      setActiveMcuUid("arduino-1");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -542,9 +652,112 @@ function Studio() {
 
         {/* Workspace + Split Pane */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left/Main Panel: Workspace or Component Library */}
+          {/* Main Content Area */}
+          {activeTab === "editor" ? (
+            <div className="flex-1 flex flex-col bg-gray-900 border-r border-gray-800">
+              <div className="p-2 border-b border-gray-800 bg-gray-800/50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-gray-400 uppercase">
+                    Target MCU:
+                  </span>
+                  <select
+                    value={activeMcuUid || ""}
+                    onChange={(e) => setActiveMcuUid(e.target.value)}
+                    className="bg-gray-900 border border-gray-700 text-white text-xs rounded px-2 py-1 outline-none focus:border-blue-500"
+                  >
+                    {components
+                      .filter((c) => c.type === ComponentType.MICROCONTROLLER)
+                      .map((mcu) => (
+                        <option key={mcu.uid} value={mcu.uid}>
+                          {mcu.name} ({mcu.uid.substr(0, 4)})
+                        </option>
+                      ))}
+                    {components.filter(
+                      (c) => c.type === ComponentType.MICROCONTROLLER,
+                    ).length === 0 && <option value="">No MCUs found</option>}
+                  </select>
+                </div>
+                <span className="text-xs text-gray-500">main.js</span>
+              </div>
+              <textarea
+                className="flex-1 bg-[#1e1e1e] text-gray-300 font-mono p-4 resize-none outline-none text-sm"
+                value={code}
+                onChange={(e) => handleCodeChange(e.target.value)}
+                spellCheck={false}
+                disabled={!activeMcuUid}
+                placeholder={
+                  !activeMcuUid
+                    ? "Select a valid Microcontroller to write code."
+                    : "// Write your code here..."
+                }
+              />
+            </div>
+          ) : (
+            <></>
+          )}
+
+          {/* Left/Main Panel: Workspace or Component Library (Always Visible if not editor, or shared? The original design had an overlay. Let's keep the workspace visible and overlay the library) 
+              Actually, the original return had the workspace as the main flex-1 div. 
+              Let's Wrap the workspace in a div that is hidden if activeTab === 'editor' to simulate a full page editor, OR split view.
+              The user asked specifically "make the code panel in a way...". 
+              Let's make the editor a full tab replacing the workspace for now, or side-by-side? 
+              The original code had an 'activeTab' content switching logic implicitly or overlays. 
+              
+              Looking at original code:
+              <div className="flex-1 flex overflow-hidden">
+                 <div className="flex-1 relative..." ...> -> This was the workspace.
+              
+              The Library was an absolute overlay: {activeTab === "library" && ...}
+              
+              I will conditionally render the Workspace OR the Editor to give full focus, 
+              OR keep the workspace and make the Editor an overlay too suitable for "God View".
+              
+              But existing code had `activeTab` switching. 
+              If I replace the workspace with the editor, I lose the ability to see the robot while coding?
+              
+              The original code rendered the workspace UNCONDITIONALLY in the main div:
+              <div className="flex-1 relative bg-gray-950 grid-pattern overflow-hidden">
+              
+              And the Editor was... nowhere in the original JSX? 
+              Wait, looking at the previous file view of Studio.tsx...
+              I missed where the Editor was rendered!
+              
+              Ah, I see `activeTab === "editor"` was used in the `Sidebar` buttons.
+              But I don't see the conditional rendering for the Editor in the `Main Content Area` in the snippet I viewed (lines 1-800).
+              It might have been further down or missing?
+              
+              Wait, `activeTab` is state. 
+              The snippet ended at line 800. The file has 1023 lines.
+              The interactions (library drawer) were overlays.
+              
+              I suspect the editor panel IS NOT IMPLEMENTED in the main view yet, or it was at the bottom.
+              
+              Let's assume I need to ADD the editor panel into the layout.
+              
+              I will structure it as:
+              <div className="flex-1 flex overflow-hidden">
+                {activeTab === 'editor' ? <EditorPanel /> : <Workspace />}
+              </div>
+              
+              But the user wants "God View", presumably referring to the Agent seeing everything.
+              
+              Let's implement a Split View or Tab View.
+              
+              If Use Tab View:
+              If activeTab === 'editor': Show Editor
+              Else: Show Workspace.
+              
+              BUT, the original code had:
+              {activeTab === "library" && ( ...overlay... )}
+              
+              I will implement the logic:
+              If activeTab === 'editor', show the editor.
+              Otherwise, show the workspace.
+              
+          */}
+
           <div
-            className="flex-1 relative bg-gray-950 grid-pattern overflow-hidden"
+            className={`flex-1 flex flex-col relative ${activeTab === "editor" ? "hidden" : "flex"}`}
             onClick={() => {
               setSelectedCompId(null);
               setSelectedWireId(null);

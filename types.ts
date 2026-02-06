@@ -29,6 +29,7 @@ export interface ComponentData {
 export interface PlacedComponent extends ComponentData {
   uid: string; // Unique instance ID
   position: { x: number; y: number };
+  code?: string; // Code stored on this microcontroller (if applicable)
 }
 
 // Wire Routing Types
