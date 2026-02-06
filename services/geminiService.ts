@@ -1,11 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
 
 // Available Gemini models
+// Available Gemini models
 export const GEMINI_MODELS = [
-  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', description: 'Latest, fastest' },
-  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', description: 'Fast & efficient' },
-  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', description: 'Most capable' },
-  { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite', description: 'Lightweight' },
+  { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Preview)', description: 'Next-gen reasoning' },
 ] as const;
 
 export type GeminiModelId = typeof GEMINI_MODELS[number]['id'];
@@ -51,25 +49,30 @@ export const generateCodeHelp = async (
     return response.text || "No response generated.";
   } catch (error: any) {
     console.error("Gemini API Error:", error);
-    console.error("Error details:", {
-      message: error.message,
-      status: error.status,
-      statusText: error.statusText,
-      name: error.name,
-    });
+    // Log full error details for debugging
+    if (error.response) {
+       console.error("API Response Error Body:", JSON.stringify(error.response, null, 2));
+    }
     
     // More specific error messages
+    if (error.status === 503) {
+      return "[RETRYABLE] ⚠️ The AI model is currently overloaded (503). Please try again in a moment.";
+    }
+    
     if (error.status === 400) {
+      if (error.message?.includes('expired')) {
+        return "❌ Your API Key has expired. Please verify and update it in Settings.";
+      }
       return `❌ Bad request: ${error.message || 'Please check your input.'}`;
     }
     if (error.status === 401 || error.status === 403) {
-      return "❌ Invalid or unauthorized API key. Please check your Gemini API key.";
+      return "❌ Invalid or unauthorized API key. Please check your Gemini API key in Settings.";
     }
     if (error.status === 429) {
-      return "⚠️ Rate limit exceeded. Please wait a moment and try again, or switch to a different model.";
+      return "⚠️ Rate limit exceeded. You may have hit the free tier quota (RPM/TPM). Please wait a minute or check your Google AI Studio quota.";
     }
     if (error.status === 404) {
-      return "❌ Model not found. Try selecting a different model.";
+      return `❌ Model '${model}' not found. It might be deprecated or not available in your region.`;
     }
     if (error.message?.includes('API key')) {
       return "❌ Invalid API key. Please check your Gemini API key and try again.";

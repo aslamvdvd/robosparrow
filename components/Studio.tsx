@@ -73,6 +73,7 @@ function Studio() {
     { role: "user" | "ai"; text: string }[]
   >([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   // API Key State
   const [apiKey, setApiKey] = useState<string>("");
@@ -332,11 +333,14 @@ function Studio() {
 
   // --- AI Handlers ---
 
-  const handleChatSubmit = async () => {
-    if (!chatInput.trim()) return;
-    const msg = chatInput;
-    setChatInput("");
-    setChatHistory((prev) => [...prev, { role: "user", text: msg }]);
+  const handleChatSubmit = async (retryMsg?: string) => {
+    const msg = retryMsg || chatInput;
+    if (!msg.trim()) return;
+
+    if (!retryMsg) {
+      setChatInput("");
+      setChatHistory((prev) => [...prev, { role: "user", text: msg }]);
+    }
     setIsAiLoading(true);
 
     const response = await generateCodeHelp(apiKey, selectedModel, msg, code);
@@ -365,14 +369,17 @@ function Studio() {
   // Load API key and model from localStorage on mount
   useEffect(() => {
     const savedKey = localStorage.getItem("robolab-api-key");
-    const savedModel = localStorage.getItem("robolab-model") as GeminiModelId;
     if (savedKey) {
       setApiKey(savedKey);
     }
-    if (savedModel && GEMINI_MODELS.some((m) => m.id === savedModel)) {
-      setSelectedModel(savedModel);
-    }
+    // Always enforce the first model (Gemini 3) as per task requirements
+    setSelectedModel(GEMINI_MODELS[0].id);
   }, []);
+
+  // Auto-scroll to bottom of chat
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatHistory, isAiLoading]);
 
   // Save API key to localStorage when changed
   const handleApiKeySave = (key: string) => {
@@ -381,10 +388,6 @@ function Studio() {
   };
 
   // Save model to localStorage when changed
-  const handleModelChange = (model: GeminiModelId) => {
-    setSelectedModel(model);
-    localStorage.setItem("robolab-model", model);
-  };
 
   // --- Initialization ---
   useEffect(() => {
@@ -909,18 +912,40 @@ function Studio() {
                         </p>
                       </div>
                     )}
-                    {chatHistory.map((msg, idx) => (
-                      <div
-                        key={idx}
-                        className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                      >
+                    {chatHistory.map((msg, idx) => {
+                      const isRetryable = msg.text.startsWith("[RETRYABLE]");
+                      const displayText = isRetryable
+                        ? msg.text.replace("[RETRYABLE] ", "")
+                        : msg.text;
+
+                      return (
                         <div
-                          className={`max-w-[85%] rounded-lg p-3 text-sm whitespace-pre-wrap ${msg.role === "user" ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-200 border border-gray-700"}`}
+                          key={idx}
+                          className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                         >
-                          {msg.text}
+                          <div
+                            className={`max-w-[85%] rounded-lg p-3 text-sm whitespace-pre-wrap ${msg.role === "user" ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-200 border border-gray-700"}`}
+                          >
+                            {displayText}
+                            {isRetryable && (
+                              <button
+                                onClick={() => {
+                                  // Find last user message to retry
+                                  const lastUserMsg = [...chatHistory]
+                                    .reverse()
+                                    .find((m) => m.role === "user");
+                                  if (lastUserMsg)
+                                    handleChatSubmit(lastUserMsg.text);
+                                }}
+                                className="mt-2 block w-full py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs border border-blue-500/30 rounded transition-colors"
+                              >
+                                ↻ Retry Request
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     {isAiLoading && (
                       <div className="flex justify-start">
                         <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
@@ -930,6 +955,7 @@ function Studio() {
                         </div>
                       </div>
                     )}
+                    <div ref={chatEndRef} />
                   </div>
                   <div className="p-4 border-t border-gray-800 bg-gray-900">
                     <div className="relative">
@@ -944,7 +970,7 @@ function Studio() {
                         className="w-full bg-gray-950 border border-gray-700 rounded-full py-2 pl-4 pr-10 text-sm text-white focus:border-blue-500 focus:outline-none"
                       />
                       <button
-                        onClick={handleChatSubmit}
+                        onClick={() => handleChatSubmit()}
                         className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-500 hover:text-blue-400 p-1"
                       >
                         <Send size={16} />
@@ -952,19 +978,9 @@ function Studio() {
                     </div>
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-xs text-gray-500">Model:</span>
-                      <select
-                        value={selectedModel}
-                        onChange={(e) =>
-                          handleModelChange(e.target.value as GeminiModelId)
-                        }
-                        className="flex-1 bg-gray-950 border border-gray-700 rounded-lg py-1 px-2 text-xs text-gray-300 focus:border-blue-500 focus:outline-none cursor-pointer"
-                      >
-                        {GEMINI_MODELS.map((model) => (
-                          <option key={model.id} value={model.id}>
-                            {model.name}
-                          </option>
-                        ))}
-                      </select>
+                      <span className="text-xs text-blue-400 font-mono border border-blue-900/50 bg-blue-900/10 px-2 py-0.5 rounded">
+                        {GEMINI_MODELS[0].name}
+                      </span>
                     </div>
                   </div>
                 </div>
