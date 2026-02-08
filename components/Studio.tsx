@@ -45,7 +45,7 @@ type SetupFunction = () => void;
 function Studio() {
   // --- State ---
   const [activeTab, setActiveTab] = useState<"editor" | "library" | "chat">(
-    "library",
+    "chat",
   );
   const [components, setComponents] = useState<PlacedComponent[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -544,7 +544,7 @@ function Studio() {
 
   // Load API key and model from localStorage on mount
   useEffect(() => {
-    const savedKey = localStorage.getItem("robolab-api-key");
+    const savedKey = localStorage.getItem("robo-sparrow-api-key");
     if (savedKey) {
       setApiKey(savedKey);
     }
@@ -560,7 +560,7 @@ function Studio() {
   // Save API key to localStorage when changed
   const handleApiKeySave = (key: string) => {
     setApiKey(key);
-    localStorage.setItem("robolab-api-key", key);
+    localStorage.setItem("robo-sparrow-api-key", key);
   };
 
   // Save model to localStorage when changed
@@ -643,7 +643,7 @@ function Studio() {
         <header className="h-14 border-b border-gray-800 bg-gray-900/50 backdrop-blur flex items-center justify-between px-6 z-10">
           <div className="flex items-center gap-4">
             <h1 className="font-bold text-lg tracking-tight">
-              RoboLab{" "}
+              Robo Sparrow{" "}
               <span className="text-blue-500 text-xs uppercase ml-1 border border-blue-900 bg-blue-900/20 px-1 rounded">
                 Alpha
               </span>
@@ -732,7 +732,7 @@ function Studio() {
                   </select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">main.js</span>
+                  {/* <span className="text-xs text-gray-500">main.js</span> */}
                   <button
                     onClick={() => setActiveTab(null)}
                     className="text-gray-400 hover:text-white"
@@ -1127,7 +1127,7 @@ function Studio() {
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                   {chatHistory.length === 0 && (
                     <div className="text-center text-gray-500 mt-10">
-                      <p className="mb-2">👋 Hi! I'm your Robotics AI.</p>
+                      <p className="mb-2">👋 Hi! I'm Robo Sparrow AI.</p>
                       <p className="text-xs">
                         Ask me to generate code, explain circuits, or debug
                         issues.

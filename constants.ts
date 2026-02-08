@@ -111,40 +111,5 @@ export const COMPONENT_LIBRARY: ComponentData[] = [
   }
 ];
 
-export const INITIAL_CODE = `// RoboLab v1.0
-// Write standard Arduino-like JavaScript
-// Available globals: digitalWrite(pin, val), delay(ms), console.log(msg)
-
-let speed = 255;
-
-function setup() {
-  console.log("RoboCar Initialized");
-  // Motor A (Left)
-  pinMode(5, 'OUTPUT'); 
-  pinMode(6, 'OUTPUT');
-  
-  // Motor B (Right)
-  pinMode(9, 'OUTPUT');
-  pinMode(10, 'OUTPUT');
-}
-
-function loop() {
-  console.log("Driving Forward");
-  
-  // Left Motor Forward
-  digitalWrite(5, HIGH);
-  digitalWrite(6, LOW);
-  
-  // Right Motor Forward
-  digitalWrite(9, HIGH);
-  digitalWrite(10, LOW);
-  
-  delay(1000);
-  
-  console.log("Stopping");
-  digitalWrite(5, LOW);
-  digitalWrite(9, LOW);
-  
-  delay(500);
-}
+export const INITIAL_CODE = `// Write your code here...
 `;
