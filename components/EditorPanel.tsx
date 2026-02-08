@@ -125,7 +125,7 @@ const EditorPanel: React.FC<EditorPanelProps> = ({
         </div>
         {/* Simulation View Section */}
         <div className="w-[40%] bg-gray-900 relative border-l border-gray-800">
-          <SimulationViewer state={simState} />
+          <SimulationViewer state={simState} components={components} />
         </div>
       </div>
     </div>

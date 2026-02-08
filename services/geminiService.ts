@@ -213,24 +213,27 @@ export const transpileCode = async (
 
   const ai = createAIClient(apiKey);
   const prompt = `
-    Turn this Arduino C++ code into JavaScript for a simulation sandbox.
+    Turn this Arduino C++ code into a single valid JavaScript function body for a simulation sandbox.
     
     RULES:
-    1. Map 'digitalWrite(pin, val)' to '__writePin(pin, val)'.
-    2. Map 'analogWrite(pin, val)' to '__pwmPin(pin, val)'.
-    3. Map 'digitalRead(pin)' to '__readPin(pin)'.
-    4. Map 'analogRead(pin)' to '__readAnalog(pin)'.
-    5. Map 'Serial.println()' to '__log()'.
-    6. Maintain logic (variables, loops, ifs).
-    7. Convert 'int', 'float', 'bool' to 'let'.
-    8. Output ONLY the JavaScript code (no markdown, no explanations).
-    9. Separate 'setup()' and 'loop()' bodies if possible, or just give me the raw JS equivalent of what's inside them.
+    1. The output will be executed as: "new Function(..., body)".
+    2. Map 'digitalWrite/analogWrite' to '__writePin/__pwmPin'.
+    3. Map 'digitalRead/analogRead' to '__readPin/__readAnalog'.
+    4. Map 'delay()' to '__delay()' (or ignore it).
+    5. Map 'Serial.print' to '__log'.
+    6. Convert C++ constants/types (int, float, const) to Let/Const.
+    7. PRESERVE GLOBAL VARIABLES! They must be at the top level of the function body.
+    8. Convert 'void setup()' to 'function setup()'.
+    9. Convert 'void loop()' to 'function loop()'.
+    10. END the code with "return { setup, loop };" so I can extract the functions.
     
-    Actually, returned format must be JSON:
-    {
-      "setup": "JS code for setup",
-      "loop": "JS code for loop"
-    }
+    Example Output Format:
+    "
+    let led = 13;
+    function setup() { __writePin(led, 0); }
+    function loop() { __writePin(led, 1); }
+    return { setup, loop };
+    "
 
     C++ CODE:
     ${code}
@@ -239,12 +242,10 @@ export const transpileCode = async (
   const response = await ai.models.generateContent({
     model,
     contents: prompt,
-    // generationConfig: { responseMimeType: "application/json" } // Not supported in this SDK version likely?
-    // Let's rely on prompt instructions for JSON
   });
   
-  const text = response.text || "{}";
-  // Clean markdown if present
-  const cleanText = text.replace(/```json|```/g, "").trim();
-  return cleanText;
+  let text = response.text || "";
+  // Clean markdown
+  text = text.replace(/```javascript|```js|```/g, "").trim();
+  return text;
 };

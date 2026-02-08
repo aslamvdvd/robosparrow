@@ -220,103 +220,68 @@ export const useSimulation = ({ code, components, connections }: UseSimulationPr
 
     try {
       // 1. Pre-processing (Regex Transpiler)
-      //    This is a MOCK compiler. In a real app, you'd use Emscripten or a backend.
-      //    We'll support basic Arduino-like syntax: setup(), loop(), digitalWrite(), delay()
+      let js = code;
 
-      // Extract setup and loop bodies
-      // VERY naive parsing for demo purposes
-      // 0. Extract bodies first to handle global vars vs local
-      const setupMatch = code.match(/void\s+setup\s*\(\)\s*{([\s\S]*?)}/);
-      const loopMatch = code.match(/void\s+loop\s*\(\)\s*{([\s\S]*?)}/);
+      // Remove comments
+      js = js.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
 
-      const setupBody = setupMatch ? setupMatch[1] : "";
-      const loopBody = loopMatch ? loopMatch[1] : "";
+      // 1. Variable Declarations (Global & Local)
+      // int x = 10; -> let x = 10;
+      js = js.replace(/const\s+\w+\s+(\w+)\s*=/g, "const $1 =");
+      js = js.replace(/(int|float|double|bool|String|long|char)\s+(\w+)(?:\s*=\s*([^;]+))?;/g, "let $2 = $3;");
+      js = js.replace(/let\s+(\w+)\s*=\s*undefined;/g, "let $1 = 0;"); // Default init
 
-      // Create Transpiled Function Bodies
-      // Replace C++ calls with JS equivalents that interact with our virtualPins
-      // 1. Transpilation (C++ to JS)
-      // Robust Regex-based approach for client-side execution
-      const transpile = (src: string) => {
-        let js = src;
-        
-        // Remove comments
-        js = js.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
+      // 2. Pin Operations
+      js = js.replace(/digitalWrite\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\);/g, "__writePin($1, $2);");
+      js = js.replace(/analogWrite\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\);/g, "__pwmPin($1, $2);");
+      js = js.replace(/digitalRead\s*\(\s*([^)]+)\s*\)/g, "__readPin($1)");
+      js = js.replace(/analogRead\s*\(\s*([^)]+)\s*\)/g, "__readAnalog($1)");
 
-        // 1. Variable Declarations
-        // int x = 10; -> let x = 10;
-        // const int x = 10; -> const x = 10;
-        // float, double, bool, String -> let
-        js = js.replace(/const\s+\w+\s+(\w+)\s*=/g, "const $1 =");
-        js = js.replace(/(int|float|double|bool|String|long|char)\s+(\w+)(?:\s*=\s*([^;]+))?;/g, "let $2 = $3;");
-        js = js.replace(/let\s+(\w+)\s*=\s*undefined;/g, "let $1 = 0;"); // Default init
+      // 3. Time & Serial
+      js = js.replace(/delay\s*\(\s*([^)]+)\s*\);/g, "// delay($1) ignored");
+      js = js.replace(/pinMode\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\);/g, "");
+      js = js.replace(/Serial\.begin\s*\([^)]+\);/g, "");
+      js = js.replace(/Serial\.println\s*\((.*?)\);/g, `__log($1);`);
+      js = js.replace(/Serial\.print\s*\((.*?)\);/g, `__log($1);`);
 
-        // 2. Pin Operations
-        // digitalWrite(pin, val) -> __writePin(pin, val)
-        js = js.replace(/digitalWrite\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\);/g, "__writePin($1, $2);");
-        // analogWrite(pin, val) -> __pwmPin(pin, val)
-        js = js.replace(/analogWrite\s*\(\s*([^,]+)\s*,\s*([^)]+)\s*\);/g, "__pwmPin($1, $2);");
-        // digitalRead(pin) -> __readPin(pin)
-        js = js.replace(/digitalRead\s*\(\s*([^)]+)\s*\)/g, "__readPin($1)");
-        // analogRead(pin) -> __readAnalog(pin)
-        js = js.replace(/analogRead\s*\(\s*([^)]+)\s*\)/g, "__readAnalog($1)");
+      // 5. Constants
+      js = js.replace(/\bHIGH\b/g, "1").replace(/\bLOW\b/g, "0");
+      js = js.replace(/\bINPUT\b/g, "'INPUT'").replace(/\bOUTPUT\b/g, "'OUTPUT'");
+      // Simple recursive string replace for A0-A5 (better than chain)
+      for(let i=0; i<=5; i++) js = js.replace(new RegExp(`\\bA${i}\\b`, 'g'), `"A${i}"`);
 
-        // 3. Time
-        // delay(ms) -> __delay(ms) (Note: Blocking delay is hard in JS loop, we'll mock it or ignore for physics tick)
-        // For physics sim, true blocking delay freezes UI. 
-        // We will ignore delay() for now to keep frames moving, OR implement async loop later.
-        // Current decision: Ignore delay to keep simulation fluid (physics-based).
-        js = js.replace(/delay\s*\(\s*([^)]+)\s*\);/g, "// delay($1) ignored for fluid sim");
+      // 6. Function Definitions (void setup() -> function setup())
+      js = js.replace(/void\s+setup\s*\(\)\s*/g, "function setup() ");
+      js = js.replace(/void\s+loop\s*\(\)\s*/g, "function loop() ");
 
-        // 4. Serial
-        js = js.replace(/Serial\.begin\s*\([^)]+\);/g, "");
-        js = js.replace(/Serial\.println\s*\((.*?)\);/g, `__log($1);`);
-        js = js.replace(/Serial\.print\s*\((.*?)\);/g, `__log($1);`);
-
-        // 5. Constants
-        js = js.replace(/\bHIGH\b/g, "1").replace(/\bLOW\b/g, "0");
-        js = js.replace(/\bINPUT\b/g, "'INPUT'").replace(/\bOUTPUT\b/g, "'OUTPUT'");
-        js = js.replace(/\bA0\b/g, `"A0"`).replace(/\bA1\b/g, `"A1"`).replace(/\bA2\b/g, `"A2"`).replace(/\bA3\b/g, `"A3"`).replace(/\bA4\b/g, `"A4"`).replace(/\bA5\b/g, `"A5"`);
-
-        return js;
-      };
-
-      const jsSetup = transpile(setupBody);
-      const jsLoop = transpile(loopBody);
+      // 7. Add Return Statement for Extraction
+      js += "\nreturn { setup, loop };";
 
       // 2. Evaluate Transpiled Code in a Sandbox
-      //    We use a Function constructor to create a sandboxed environment.
-      //    This allows us to inject our helper functions (__writePin, __readPin, etc.)
-      //    and prevent the user code from accessing global scope directly.
-      const createSandboxedFunction = (codeStr: string, funcName: string) => {
+      const createSandboxedClosure = (codeStr: string) => {
         // eslint-disable-next-line no-new-func
         return new Function(
           "__writePin", "__pwmPin", "__readPin", "__readAnalog", "__log",
           `
-          let __globalVars = {}; // Simple scope for global variables
+          const pinMode = () => {}; 
           ${codeStr}
-          return ${funcName};
           `
         )(__writePin, __pwmPin, __readPin, __readAnalog, __log);
       };
 
-      const setupFunc = createSandboxedFunction(jsSetup, "setup");
-      const loopFunc = createSandboxedFunction(jsLoop, "loop");
-
-      userCodeClosure.current = { setup: setupFunc, loop: loopFunc };
+      const closure = createSandboxedClosure(js);
+      userCodeClosure.current = { setup: closure.setup, loop: closure.loop };
 
       logToConsole("Code compiled (Regex). Starting...", "system");
       setSimState((prev) => ({ ...prev, isRunning: true }));
 
-      // Run setup() once
       if (userCodeClosure.current.setup) {
         userCodeClosure.current.setup();
       }
 
-      // Start the main simulation loop
       startLoop();
-
-      // Physics Loop (for robot movement, etc.)
       requestRef.current = requestAnimationFrame(physicsTick);
+
     } catch (err: any) {
          // FALLBACK: AI Transpilation
          logToConsole(`Standard compilation failed (${err.message}). Trying AI Compiler...`, "system");
@@ -330,22 +295,22 @@ export const useSimulation = ({ code, components, connections }: UseSimulationPr
          try {
              // Dynamic import to avoid circular dependency potentially
              const { transpileCode } = await import("../services/geminiService");
-             const aiResultStr = await transpileCode(apiKey, "gemini-3-flash-preview", code);
-             const aiResult = JSON.parse(aiResultStr);
+             // Request cohesive JS script
+             const aiCode = await transpileCode(apiKey, "gemini-3-flash-preview", code);
              
-             const createAiFunc = (body: string) => {
+             const createAiClosure = (script: string) => {
                  return new Function(
                     "__writePin", "__pwmPin", "__readPin", "__readAnalog", "__log",
-                    body
-                 ) as (w: any, pwm: any, r: any, ra: any, l: any) => void;
+                    `const pinMode = () => {}; 
+                     ${script}`
+                 )(__writePin, __pwmPin, __readPin, __readAnalog, __log);
              };
 
-             const aiSetupFn = createAiFunc(aiResult.setup || "");
-             const aiLoopFn = createAiFunc(aiResult.loop || "");
+             const aiClosure = createAiClosure(aiCode);
 
              userCodeClosure.current = {
-                setup: () => aiSetupFn(__writePin, __pwmPin, __readPin, __readAnalog, __log),
-                loop: () => aiLoopFn(__writePin, __pwmPin, __readPin, __readAnalog, __log),
+                setup: aiClosure.setup,
+                loop: aiClosure.loop,
              };
 
              logToConsole("AI Compilation successful! Starting...", "system");
@@ -356,6 +321,7 @@ export const useSimulation = ({ code, components, connections }: UseSimulationPr
              requestRef.current = requestAnimationFrame(physicsTick);
 
          } catch (aiErr: any) {
+             console.error(aiErr);
              logToConsole(`AI Compile Error: ${aiErr.message}`, "error");
          }
     }

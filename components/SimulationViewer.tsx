@@ -3,9 +3,10 @@ import { SimulationState } from "../types";
 
 interface Props {
   state: SimulationState;
+  components?: any[]; // Optional for backward compat if needed, but we should pass it
 }
 
-const SimulationViewer: React.FC<Props> = ({ state }) => {
+const SimulationViewer: React.FC<Props> = ({ state, components = [] }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -31,44 +32,101 @@ const SimulationViewer: React.FC<Props> = ({ state }) => {
     }
     ctx.stroke();
 
-    // Draw Robot Body (Dynamic Chassis)
-    // We'll draw a generic chassis box, but scaled to fit components?
-    // For now, keep the blue box as "Base", but maybe larger.
-
     ctx.save();
     const { x, y, rotation } = state.robotPosition;
+
+    // Robot Center
     ctx.translate(x, y);
     ctx.rotate(rotation);
 
     // Chassis Body
+    // If we have components, we could try to bound them?
+    // For now, static chassis size is fine, maybe slightly larger if 4WD.
+    const is4WD =
+      components.filter((c) => c.simulation?.type === "motor").length > 2;
+
     ctx.fillStyle = "#60a5fa"; // Blue-400
     ctx.shadowColor = "rgba(96, 165, 250, 0.5)";
     ctx.shadowBlur = 15;
-    ctx.fillRect(-30, -40, 60, 80); // Slightly larger
+
+    if (is4WD) {
+      ctx.fillRect(-35, -50, 70, 100); // Larger chassis for 4WD
+    } else {
+      ctx.fillRect(-30, -40, 60, 80); // Standard chassis
+    }
 
     // Front indicator
     ctx.fillStyle = "#ef4444";
     ctx.beginPath();
-    ctx.arc(0, -30, 4, 0, Math.PI * 2);
+    ctx.arc(0, is4WD ? -40 : -30, 4, 0, Math.PI * 2);
     ctx.fill();
 
-    // Draw Dynamic Wheels (Visual Feedback)
-    // We don't have access to 'components' prop here in current signature.
-    // Ideally we should pass 'components' to SimulationViewer to draw them relative.
-    // For this "Lite" version, we'll just animate generic wheels based on if it's moving.
+    // Draw Components (Motors)
+    const motors = components.filter((c) => c.simulation?.type === "motor");
 
-    ctx.fillStyle = "#1f2937"; // Gray-800
-    const isMoving = state.logs.length > 0 && state.isRunning; // Primitive check, or pass velocity?
+    if (motors.length > 0) {
+      motors.forEach((motor) => {
+        // Heuristic to determine visual position on chassis
+        // Left vs Right
+        const isLeft =
+          motor.properties?.position === "left" || motor.position.x < 300;
+        const offsetX = isLeft ? -38 : 30; // From center
 
-    // Generic Wheel positions for a 2WD bot
-    ctx.fillRect(-34, -10, 8, 20); // Left Wheel
-    ctx.fillRect(26, -10, 8, 20); // Right Wheel
+        // Front vs Back (Heuristic based on Y position in editor?)
+        // Or just slot them.
+        // If 4 motors: 2 left, 2 right.
+        // We can check if there are multiple on left/right.
 
-    // If we passed components, we could do:
-    // components.filter(c => c.simulation.type === 'motor').forEach(...)
+        // Simplified: Just draw generic wheels at corners if we can't map perfectly.
+      });
+
+      // Better: Dynamic Slots
+      // If 2 motors: Left/Right Center
+      // If 4 motors: FL, FR, BL, BR
+      const leftMotors = motors.filter(
+        (m) => m.properties?.position === "left" || m.position.x < 300,
+      );
+      const rightMotors = motors.filter(
+        (m) => m.properties?.position === "right" || m.position.x >= 300,
+      );
+
+      const drawWheel = (wx: number, wy: number) => {
+        ctx.fillStyle = "#1f2937"; // Gray-800
+        ctx.fillRect(wx, wy, 8, 20);
+
+        // Rim/Hub
+        ctx.fillStyle = "#4b5563";
+        ctx.fillRect(wx + 2, wy + 5, 4, 10);
+      };
+
+      // Left Side
+      leftMotors.forEach((_, i) => {
+        // i=0 -> Front, i=1 -> Back (if 2)
+        // Or center if 1
+        let yOffset = -10;
+        if (leftMotors.length > 1) {
+          yOffset = i === 0 ? -35 : 15;
+        }
+        drawWheel(is4WD ? -42 : -34, yOffset);
+      });
+
+      // Right Side
+      rightMotors.forEach((_, i) => {
+        let yOffset = -10;
+        if (rightMotors.length > 1) {
+          yOffset = i === 0 ? -35 : 15;
+        }
+        drawWheel(is4WD ? 34 : 26, yOffset);
+      });
+    } else {
+      // Fallback 2WD
+      ctx.fillStyle = "#1f2937";
+      ctx.fillRect(-34, -10, 8, 20); // L
+      ctx.fillRect(26, -10, 8, 20); // R
+    }
 
     ctx.restore();
-  }, [state.robotPosition]);
+  }, [state.robotPosition, components]);
 
   return (
     <div className="w-full h-full relative bg-gray-950 overflow-hidden rounded-lg border border-gray-800">
