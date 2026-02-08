@@ -138,8 +138,19 @@ function Studio() {
     y1: number,
     x2: number,
     y2: number,
+    seed: string = "",
   ) => {
-    const midX = (x1 + x2) / 2;
+    let jitter = 0;
+    if (seed) {
+      // Simple hash to create consistent offset based on ID
+      const hash = seed
+        .split("")
+        .reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
+      jitter = ((Math.abs(hash) % 9) - 4) * 8; // Spread wires by +/- 32px
+    }
+
+    // Ensure midX doesn't drift too wildly, but defaults to center
+    const midX = (x1 + x2) / 2 + jitter;
     return `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`;
   };
 
@@ -764,6 +775,26 @@ function Studio() {
               setSelectedPin(null);
             }}
           >
+            {/* Components Layer */}
+            {components.map((comp) => (
+              <div
+                key={comp.uid}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedCompId(comp.uid);
+                  setSelectedWireId(null);
+                }}
+              >
+                <WorkspaceComponent
+                  component={comp}
+                  onMove={moveComponent}
+                  onPinClick={handlePinClick}
+                  isSelected={selectedCompId === comp.uid}
+                  selectedPin={selectedPin}
+                />
+              </div>
+            ))}
+
             {/* Draw Connections (SVG Layer) */}
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
               {connections.map((conn) => {
@@ -814,7 +845,7 @@ function Studio() {
                 if (x1 === 0 && y1 === 0 && x2 === 0 && y2 === 0) return null;
 
                 const isSelected = selectedWireId === conn.id;
-                const pathD = getOrthogonalPath(x1, y1, x2, y2);
+                const pathD = getOrthogonalPath(x1, y1, x2, y2, conn.id);
 
                 return (
                   <g
@@ -840,14 +871,30 @@ function Studio() {
                       strokeWidth={isSelected ? "4" : "3"}
                       fill="none"
                       className="transition-all"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                       style={{
                         filter: isSelected
                           ? "drop-shadow(0 0 5px rgba(255,255,255,0.5))"
-                          : "none",
+                          : "drop-shadow(0 1px 2px rgba(0,0,0,0.5))", // Subtle shadow for depth
                       }}
                     />
-                    <circle cx={x1} cy={y1} r="3" fill={conn.color} />
-                    <circle cx={x2} cy={y2} r="3" fill={conn.color} />
+                    <circle
+                      cx={x1}
+                      cy={y1}
+                      r="5"
+                      fill={conn.color}
+                      stroke="white"
+                      strokeWidth="2"
+                    />
+                    <circle
+                      cx={x2}
+                      cy={y2}
+                      r="5"
+                      fill={conn.color}
+                      stroke="white"
+                      strokeWidth="2"
+                    />
                   </g>
                 );
               })}
@@ -864,26 +911,6 @@ function Studio() {
                 />
               )}
             </svg>
-
-            {/* Components Layer */}
-            {components.map((comp) => (
-              <div
-                key={comp.uid}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedCompId(comp.uid);
-                  setSelectedWireId(null);
-                }}
-              >
-                <WorkspaceComponent
-                  component={comp}
-                  onMove={moveComponent}
-                  onPinClick={handlePinClick}
-                  isSelected={selectedCompId === comp.uid}
-                  selectedPin={selectedPin}
-                />
-              </div>
-            ))}
 
             {/* Hint Overlay */}
             <div className="absolute bottom-4 left-4 pointer-events-none text-gray-500 text-xs">
