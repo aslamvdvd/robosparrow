@@ -81,7 +81,8 @@ export type AgentActionType =
   | 'DELETE_CONNECTION'
   | 'START_SIMULATION'
   | 'STOP_SIMULATION'
-  | 'CLEAR_CONSOLE';
+  | 'CLEAR_CONSOLE'
+  | 'OPEN_PANEL';
 
 export interface AgentAction {
   type: AgentActionType;
@@ -96,6 +97,7 @@ export interface AgentAction {
   color?: string; // For CONNECT
   targetCompUid?: string; // For UPDATE_CODE
   code?: string; // For UPDATE_CODE
+  panel?: 'editor' | 'library' | 'chat'; // For OPEN_PANEL
 }
 
 export interface AgentResponse {

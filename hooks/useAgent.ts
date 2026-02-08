@@ -25,6 +25,8 @@ interface UseAgentProps {
   runSimulation: () => void;
   stopSimulation: () => void;
   setConsoleLogs: (logs: any[]) => void;
+  setActiveMcuUid: (uid: string) => void;
+  onOpenPanel: (panel: "editor" | "library" | "chat") => void;
 }
 
 export const useAgent = ({
@@ -43,6 +45,8 @@ export const useAgent = ({
   runSimulation,
   stopSimulation,
   setConsoleLogs,
+  setActiveMcuUid,
+  onOpenPanel,
 }: UseAgentProps) => {
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState<
@@ -119,10 +123,10 @@ export const useAgent = ({
         const targetMcu = newComponents.find((c) => c.uid === targetUid);
         if (targetMcu && op.code) {
           targetMcu.code = op.code;
-          // If we updated the currently active MCU, simplify update the editor too
-          if (targetUid === activeMcuUid) {
-            setCode(op.code);
-          }
+          // Auto-select the MCU and open editor
+          setActiveMcuUid(targetUid);
+          setCode(op.code); // Sync editor state
+          onOpenPanel("editor");
         }
       } else if (op.type === "DELETE_COMPONENT") {
         const idx = newComponents.findIndex((c) => c.uid === op.uid);
@@ -138,6 +142,8 @@ export const useAgent = ({
         logToConsole("Agent stopped simulation", "system");
       } else if (op.type === "CLEAR_CONSOLE") {
         setConsoleLogs([]);
+      } else if (op.type === "OPEN_PANEL") {
+         if (op.panel) onOpenPanel(op.panel);
       }
     }
     setComponents(newComponents);
@@ -185,6 +191,7 @@ export const useAgent = ({
         code,
         components,
         connections,
+        agentMode
       );
 
       // Parse JSON Actions (Agentic Capabilities)

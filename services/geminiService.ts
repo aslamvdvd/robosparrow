@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
+import { ComponentData } from '../types';
+import { COMPONENT_LIBRARY } from '../constants';
 
-// Available Gemini models
 // Available Gemini models
 export const GEMINI_MODELS = [
   { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Preview)', description: 'Next-gen reasoning' },
@@ -12,6 +13,11 @@ export type GeminiModelId = typeof GEMINI_MODELS[number]['id'];
 const createAIClient = (apiKey: string) => {
   return new GoogleGenAI({ apiKey });
 };
+const getLibraryContext = (): string => {
+  return COMPONENT_LIBRARY.map(c => 
+    `- ID: "${c.id}" (${c.name}): ${c.description}. Pins: ${c.pins.map(p => p.id).join(', ')}`
+  ).join('\n');
+};
 
 export const generateCodeHelp = async (
   apiKey: string, 
@@ -19,7 +25,8 @@ export const generateCodeHelp = async (
   prompt: string, 
   currentCode: string,
   components: any[] = [],
-  connections: any[] = []
+  connections: any[] = [],
+  agentMode: 'auto' | 'manual' = 'manual'
 ): Promise<string> => {
   if (!apiKey) {
     return "⚠️ Please enter your Gemini API key in the settings panel to use AI features.";
@@ -34,7 +41,7 @@ export const generateCodeHelp = async (
         uid: c.uid, 
         id: c.id, 
         name: c.name, 
-        pins: c.pins.map((p: any) => p.id),
+        // pins: c.pins.map((p: any) => p.id), // Context reduction
         position: c.position 
       })),
       connections: connections.map(c => ({
@@ -44,10 +51,16 @@ export const generateCodeHelp = async (
       }))
     }, null, 2);
 
+    const libraryContext = getLibraryContext();
+
     const fullPrompt = `
       You are an expert Robotics Engineer with "God View" control over a virtual studio. Your name is RoboBuddy.
+      You are currently in **${agentMode.toUpperCase()}** mode.
       
       You can Answer questions, Write Code, and directly MODIFY the circuit.
+      
+      AVAILABLE COMPONENT LIBRARY (Use these IDs for ADD_COMPONENT):
+      ${libraryContext}
       
       CURRENT STUDIO STATE:
       ${stateContext}
@@ -71,6 +84,7 @@ export const generateCodeHelp = async (
           { "type": "ADD_COMPONENT", "componentId": "led-red", "x": 300, "y": 300 },
           { "type": "CONNECT", "from": { "compUid": "arduino-1", "pinId": "D13" }, "to": { "compUid": "LAST_ADDED", "pinId": "POS" }, "color": "red" },
           { "type": "UPDATE_CODE", "targetCompUid": "arduino-1", "code": "// New code here..." },
+          { "type": "OPEN_PANEL", "panel": "editor" },
           { "type": "DELETE_COMPONENT", "uid": "component-uid-to-delete" },
           { "type": "DELETE_CONNECTION", "id": "connection-id-to-delete" },
           { "type": "START_SIMULATION" },
@@ -80,7 +94,13 @@ export const generateCodeHelp = async (
       }
       \`\`\`
       
-      For 'CONNECT', 'from' and 'to' must match the component UIDs in the state OR use "LAST_ADDED" to refer to a component you just created in the same block.
+      CRITICAL RULES:
+      - **IDs**: Use valid IDs from the Library.
+      - **Code Injection**: When writing code for a Microcontroller, ALWAYS include the \`UPDATE_CODE\` action targeting that MCU's UID.
+      - **Open Editor**: If you update code, ALWAYS include \`{ "type": "OPEN_PANEL", "panel": "editor" }\` so the user sees it.
+      - **Multiple MCUs**:
+        - If \`agentMode\` is **AUTO**: Automatically select the most relevant Microcontroller for the code. Do not ask.
+        - If \`agentMode\` is **MANUAL** and multiple MCUs exist: You may ASK the user which one to program, OR make a best guess if obvious.
       
       Keep explanations concise/helpful.
     `;
@@ -92,7 +112,8 @@ export const generateCodeHelp = async (
 
     return response.text || "No response generated.";
   } catch (error: any) {
-    console.error("Gemini API Error:", error);
+     // ... (Error handling remains same)
+     console.error("Gemini API Error:", error);
     // Log full error details for debugging
     if (error.response) {
        console.error("API Response Error Body:", JSON.stringify(error.response, null, 2));

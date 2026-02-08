@@ -97,6 +97,8 @@ function Studio() {
     runSimulation,
     stopSimulation,
     setConsoleLogs,
+    setActiveMcuUid,
+    onOpenPanel: setActiveTab, // Map onOpenPanel to setActiveTab
   });
 
   // Save API key to localStorage when changed
