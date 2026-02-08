@@ -134,13 +134,32 @@ export const useAgent = ({
         } else if (targetUid === "LAST_ADDED") {
             targetUid = lastAddedUid;
         }
-        const targetMcu = newComponents.find((c) => c.uid === targetUid);
+        
+        // Robust Fallback Logic for Code Injection
+        let targetMcu = newComponents.find((c) => c.uid === targetUid);
+        if (!targetMcu) {
+            // Fallback 1: Try to find by Component ID (e.g. agent said generic "arduino-uno")
+            targetMcu = newComponents.find((c) => c.id === targetUid && c.type === ComponentType.MICROCONTROLLER);
+            
+            // Fallback 2: If there's only one MCU in the entire workspace, assume that's the one
+            if (!targetMcu) {
+               const allMcus = newComponents.filter(c => c.type === ComponentType.MICROCONTROLLER);
+               if (allMcus.length === 1) {
+                   targetMcu = allMcus[0];
+                   console.log("Agent: Target UID not found, defaulting to single available MCU:", targetMcu.uid);
+               }
+            }
+        }
+
         if (targetMcu && op.code) {
           targetMcu.code = op.code;
           // Auto-select the MCU and open editor
-          setActiveMcuUid(targetUid);
+          setActiveMcuUid(targetMcu.uid);
           setCode(op.code); // Sync editor state
           onOpenPanel("editor");
+        } else {
+           console.warn("Agent: Could not find target MCU for code update:", targetUid);
+           logToConsole(`Agent failed to inject code: Controller '${targetUid}' not found.`, "error");
         }
       } else if (op.type === "DELETE_COMPONENT") {
         const idx = newComponents.findIndex((c) => c.uid === op.uid);
@@ -226,6 +245,11 @@ export const useAgent = ({
         }
         // Hide the JSON block from the chat UI
         displayText = response.replace(jsonMatch[0], "").trim();
+
+        // If we performed an UPDATE_CODE action, also hide the code block from chat to avoid clutter
+        if (actionData.operations.some((op: any) => op.type === "UPDATE_CODE")) {
+           displayText = displayText.replace(/```(cpp|c\+\+|c|arduino|javascript|js|typescript|ts)\s*([\s\S]*?)```/gi, "(Code injected into Editor)").trim();
+        }
       }
 
       setChatHistory((prev) => [...prev, { role: "ai", text: displayText }]);
