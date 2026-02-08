@@ -189,6 +189,7 @@ export const useAgent = ({
 
       // Parse JSON Actions (Agentic Capabilities)
 
+      let displayText = response;
       const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
       if (jsonMatch) {
         const actionData = JSON.parse(jsonMatch[1]);
@@ -202,9 +203,11 @@ export const useAgent = ({
             setPendingActions(actionData.operations);
           }
         }
+        // Hide the JSON block from the chat UI
+        displayText = response.replace(jsonMatch[0], "").trim();
       }
 
-      setChatHistory((prev) => [...prev, { role: "ai", text: response }]);
+      setChatHistory((prev) => [...prev, { role: "ai", text: displayText }]);
     } catch (e) {
       console.error("Agent Error", e);
       setChatHistory((prev) => [
