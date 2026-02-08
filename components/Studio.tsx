@@ -36,6 +36,10 @@ import {
   HardDrive as HardDriveIcon,
   Eraser,
   StopCircle,
+  ZoomIn,
+  ZoomOut,
+  Maximize,
+  Move,
 } from "lucide-react";
 
 // Types for simulation loop
@@ -138,6 +142,12 @@ function Studio() {
   });
   const [isDraggingEditor, setIsDraggingEditor] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
+
+  // Infinite Canvas State
+  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const [isPanning, setIsPanning] = useState(false);
+  const panStartRef = useRef({ x: 0, y: 0 });
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   // Refs for Simulation Loop
   const requestRef = useRef<number | null>(null);
@@ -512,6 +522,65 @@ function Studio() {
     setIsAiLoading(false);
   };
 
+  // --- Infinite Canvas Handlers ---
+
+  const handleWheel = (e: React.WheelEvent) => {
+    // Zoom on wheel (Ctrl+Wheel or Meta+Wheel)
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const zoomSensitivity = 0.001;
+      const newScale = Math.min(
+        Math.max(transform.scale - e.deltaY * zoomSensitivity, 0.1),
+        5,
+      );
+
+      setTransform((prev) => ({ ...prev, scale: newScale }));
+    } else {
+      // Pan on wheel
+      setTransform((prev) => ({
+        ...prev,
+        x: prev.x - e.deltaX,
+        y: prev.y - e.deltaY,
+      }));
+    }
+  };
+
+  const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    // Middle mouse (1) or Left click (0) on background starts pan
+    if (e.button === 1 || e.button === 0) {
+      setIsPanning(true);
+      panStartRef.current = { x: e.clientX, y: e.clientY };
+    }
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent) => {
+    if (isPanning) {
+      const dx = e.clientX - panStartRef.current.x;
+      const dy = e.clientY - panStartRef.current.y;
+
+      setTransform((prev) => ({
+        ...prev,
+        x: prev.x + dx,
+        y: prev.y + dy,
+      }));
+
+      panStartRef.current = { x: e.clientX, y: e.clientY };
+    }
+  };
+
+  const handleCanvasMouseUp = () => {
+    setIsPanning(false);
+  };
+
+  const zoomIn = () =>
+    setTransform((prev) => ({ ...prev, scale: Math.min(prev.scale * 1.2, 5) }));
+  const zoomOut = () =>
+    setTransform((prev) => ({
+      ...prev,
+      scale: Math.max(prev.scale / 1.2, 0.1),
+    }));
+  const resetView = () => setTransform({ x: 0, y: 0, scale: 1 });
+
   const handleClearCanvas = () => {
     if (
       confirm(
@@ -799,151 +868,195 @@ function Studio() {
               setSelectedWireId(null);
               setSelectedPin(null);
             }}
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={handleCanvasMouseUp}
+            onMouseLeave={handleCanvasMouseUp}
+            onWheel={handleWheel}
+            ref={canvasRef}
           >
-            {/* Components Layer */}
-            {components.map((comp) => (
-              <div
-                key={comp.uid}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedCompId(comp.uid);
-                  setSelectedWireId(null);
-                }}
-              >
-                <WorkspaceComponent
-                  component={comp}
-                  onMove={moveComponent}
-                  onPinClick={handlePinClick}
-                  isSelected={selectedCompId === comp.uid}
-                  selectedPin={selectedPin}
-                />
-              </div>
-            ))}
+            {/* Transform Container */}
+            <div
+              style={{
+                transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
+                transformOrigin: "0 0",
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              {/* Components Layer */}
+              {components.map((comp) => (
+                <div
+                  key={comp.uid}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedCompId(comp.uid);
+                    setSelectedWireId(null);
+                  }}
+                >
+                  <WorkspaceComponent
+                    component={comp}
+                    onMove={moveComponent}
+                    onPinClick={handlePinClick}
+                    isSelected={selectedCompId === comp.uid}
+                    selectedPin={selectedPin}
+                    scale={transform.scale}
+                  />
+                </div>
+              ))}
 
-            {/* Draw Connections (SVG Layer) */}
-            <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-              {connections.map((conn) => {
-                const fromComp = components.find(
-                  (c) => c.uid === conn.from.compUid,
-                );
-                const toComp = components.find(
-                  (c) => c.uid === conn.to.compUid,
-                );
-
-                let x1 = 0,
-                  y1 = 0,
-                  x2 = 0,
-                  y2 = 0;
-
-                // Resolve Start Point
-                if (conn.from.type === "pin" && fromComp) {
-                  const pin = fromComp.pins.find(
-                    (p) => p.id === conn.from.pinId,
+              {/* Draw Connections (SVG Layer) */}
+              <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0 overflow-visible">
+                {connections.map((conn) => {
+                  const fromComp = components.find(
+                    (c) => c.uid === conn.from.compUid,
                   );
-                  if (pin) {
-                    x1 = fromComp.position.x + pin.x;
-                    y1 = fromComp.position.y + pin.y;
+                  const toComp = components.find(
+                    (c) => c.uid === conn.to.compUid,
+                  );
+
+                  let x1 = 0,
+                    y1 = 0,
+                    x2 = 0,
+                    y2 = 0;
+
+                  // Resolve Start Point
+                  if (conn.from.type === "pin" && fromComp) {
+                    const pin = fromComp.pins.find(
+                      (p) => p.id === conn.from.pinId,
+                    );
+                    if (pin) {
+                      x1 = fromComp.position.x + pin.x;
+                      y1 = fromComp.position.y + pin.y;
+                    }
+                  } else if (
+                    conn.from.type === "point" &&
+                    conn.from.x !== undefined
+                  ) {
+                    x1 = conn.from.x;
+                    y1 = conn.from.y || 0;
                   }
-                } else if (
-                  conn.from.type === "point" &&
-                  conn.from.x !== undefined
-                ) {
-                  x1 = conn.from.x;
-                  y1 = conn.from.y || 0;
-                }
 
-                // Resolve End Point
-                if (conn.to.type === "pin" && toComp) {
-                  const pin = toComp.pins.find((p) => p.id === conn.to.pinId);
-                  if (pin) {
-                    x2 = toComp.position.x + pin.x;
-                    y2 = toComp.position.y + pin.y;
+                  // Resolve End Point
+                  if (conn.to.type === "pin" && toComp) {
+                    const pin = toComp.pins.find((p) => p.id === conn.to.pinId);
+                    if (pin) {
+                      x2 = toComp.position.x + pin.x;
+                      y2 = toComp.position.y + pin.y;
+                    }
+                  } else if (
+                    conn.to.type === "point" &&
+                    conn.to.x !== undefined
+                  ) {
+                    x2 = conn.to.x;
+                    y2 = conn.to.y || 0;
                   }
-                } else if (
-                  conn.to.type === "point" &&
-                  conn.to.x !== undefined
-                ) {
-                  x2 = conn.to.x;
-                  y2 = conn.to.y || 0;
-                }
 
-                if (x1 === 0 && y1 === 0 && x2 === 0 && y2 === 0) return null;
+                  if (x1 === 0 && y1 === 0 && x2 === 0 && y2 === 0) return null;
 
-                const isSelected = selectedWireId === conn.id;
-                const pathD = getOrthogonalPath(x1, y1, x2, y2, conn.id);
+                  const isSelected = selectedWireId === conn.id;
+                  const pathD = getOrthogonalPath(x1, y1, x2, y2, conn.id);
 
-                return (
-                  <g
-                    key={conn.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedWireId(conn.id);
-                      setSelectedCompId(null); // Deselect component
-                    }}
-                    className="cursor-pointer group pointer-events-auto"
-                  >
-                    {/* Invisible Hit Area (Thicker) */}
-                    <path
-                      d={pathD}
-                      stroke="transparent"
-                      strokeWidth="15"
-                      fill="none"
-                    />
-                    {/* Visible Wire */}
-                    <path
-                      d={pathD}
-                      stroke={isSelected ? "#fff" : conn.color}
-                      strokeWidth={isSelected ? "4" : "3"}
-                      fill="none"
-                      className="transition-all"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      style={{
-                        filter: isSelected
-                          ? "drop-shadow(0 0 5px rgba(255,255,255,0.5))"
-                          : "drop-shadow(0 1px 2px rgba(0,0,0,0.5))", // Subtle shadow for depth
+                  return (
+                    <g
+                      key={conn.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedWireId(conn.id);
+                        setSelectedCompId(null); // Deselect component
                       }}
-                    />
-                    <circle
-                      cx={x1}
-                      cy={y1}
-                      r="5"
-                      fill={conn.color}
-                      stroke="white"
-                      strokeWidth="2"
-                    />
-                    <circle
-                      cx={x2}
-                      cy={y2}
-                      r="5"
-                      fill={conn.color}
-                      stroke="white"
-                      strokeWidth="2"
-                    />
-                  </g>
-                );
-              })}
-              {/* Drawing line for currently selected pin */}
-              {selectedPin && (
-                <line
-                  x1={selectedPin.x}
-                  y1={selectedPin.y}
-                  x2={selectedPin.x}
-                  y2={selectedPin.y}
-                  stroke="white"
-                  strokeDasharray="4"
-                  className="animate-pulse pointer-events-none"
-                />
-              )}
-            </svg>
-
+                      className="cursor-pointer group pointer-events-auto"
+                    >
+                      {/* Invisible Hit Area (Thicker) */}
+                      <path
+                        d={pathD}
+                        stroke="transparent"
+                        strokeWidth={15 / transform.scale} // Scale stroke width inverse to zoom
+                        fill="none"
+                      />
+                      {/* Visible Wire */}
+                      <path
+                        d={pathD}
+                        stroke={isSelected ? "#fff" : conn.color}
+                        strokeWidth={(isSelected ? 4 : 3) / transform.scale}
+                        fill="none"
+                        className="transition-all"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{
+                          filter: isSelected
+                            ? "drop-shadow(0 0 5px rgba(255,255,255,0.5))"
+                            : "drop-shadow(0 1px 2px rgba(0,0,0,0.5))", // Subtle shadow for depth
+                        }}
+                      />
+                      <circle
+                        cx={x1}
+                        cy={y1}
+                        r={5 / transform.scale}
+                        fill={conn.color}
+                        stroke="white"
+                        strokeWidth={2 / transform.scale}
+                      />
+                      <circle
+                        cx={x2}
+                        cy={y2}
+                        r={5 / transform.scale}
+                        fill={conn.color}
+                        stroke="white"
+                        strokeWidth={2 / transform.scale}
+                      />
+                    </g>
+                  );
+                })}
+                {/* Drawing line for currently selected pin */}
+                {selectedPin && (
+                  <line
+                    x1={selectedPin.x}
+                    y1={selectedPin.y}
+                    x2={selectedPin.x}
+                    y2={selectedPin.y}
+                    stroke="white"
+                    strokeDasharray="4"
+                    className="animate-pulse pointer-events-none"
+                  />
+                )}
+              </svg>
+            </div>{" "}
+            {/* End Transform Container */}
+            {/* Canvas Controls */}
+            <div className="absolute bottom-6 left-6 flex items-center gap-2 z-40 bg-gray-900/80 backdrop-blur p-2 rounded-lg border border-gray-700 shadow-lg">
+              <button
+                onClick={zoomOut}
+                className="p-2 hover:bg-gray-800 rounded text-gray-300 hover:text-white"
+                title="Zoom Out"
+              >
+                <ZoomOut size={16} />
+              </button>
+              <span className="text-xs font-mono text-gray-400 w-12 text-center">
+                {Math.round(transform.scale * 100)}%
+              </span>
+              <button
+                onClick={zoomIn}
+                className="p-2 hover:bg-gray-800 rounded text-gray-300 hover:text-white"
+                title="Zoom In"
+              >
+                <ZoomIn size={16} />
+              </button>
+              <div className="w-px h-4 bg-gray-700 mx-1" />
+              <button
+                onClick={resetView}
+                className="p-2 hover:bg-gray-800 rounded text-gray-300 hover:text-white"
+                title="Reset View"
+              >
+                <Maximize size={16} />
+              </button>
+            </div>
             {/* Hint Overlay */}
             <div className="absolute bottom-4 left-4 pointer-events-none text-gray-500 text-xs">
               {selectedPin
                 ? "Select destination pin to connect..."
                 : "Drag components to move. Click pins to wire. Click wires to edit."}
             </div>
-
             {/* Wire Properties Panel */}
             {selectedWireId && (
               <div
@@ -1013,7 +1126,6 @@ function Studio() {
                 })()}
               </div>
             )}
-
             {/* Library Drawer (Overlaid if active) */}
             {activeTab === "library" && (
               <div
@@ -1040,7 +1152,6 @@ function Studio() {
                 ))}
               </div>
             )}
-
             {/* Settings Panel (Overlaid if active) */}
             {showSettings && (
               <div

@@ -7,6 +7,7 @@ interface Props {
   onPinClick: (compUid: string, pinId: string, x: number, y: number) => void;
   isSelected: boolean;
   selectedPin: { compUid: string; pinId: string } | null;
+  scale: number; // New prop for zoom scale
 }
 
 const WorkspaceComponent: React.FC<Props> = ({
@@ -15,6 +16,7 @@ const WorkspaceComponent: React.FC<Props> = ({
   onPinClick,
   isSelected,
   selectedPin,
+  scale,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
@@ -22,9 +24,10 @@ const WorkspaceComponent: React.FC<Props> = ({
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsDragging(true);
+    // Calculate offset in CANVAS coordinates (divide by scale)
     dragOffset.current = {
-      x: e.clientX - component.position.x,
-      y: e.clientY - component.position.y,
+      x: e.clientX / scale - component.position.x,
+      y: e.clientY / scale - component.position.y,
     };
   };
 
@@ -32,8 +35,8 @@ const WorkspaceComponent: React.FC<Props> = ({
     if (isDragging) {
       onMove(
         component.uid,
-        e.clientX - dragOffset.current.x,
-        e.clientY - dragOffset.current.y,
+        e.clientX / scale - dragOffset.current.x,
+        e.clientY / scale - dragOffset.current.y,
       );
     }
   };
