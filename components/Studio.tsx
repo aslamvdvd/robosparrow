@@ -686,32 +686,39 @@ function Studio() {
                     : "// Write your code here..."
                 }
               />
-              {/* Console Output in Overlay */}
-              <div className="h-1/3 border-t border-gray-800 bg-black flex flex-col rounded-b-xl overflow-hidden">
-                <div className="px-4 py-2 bg-gray-900/90 text-gray-400 text-xs font-bold border-b border-gray-800 flex justify-between">
-                  <span>CONSOLE</span>
-                  <button
-                    onClick={() => setConsoleLogs([])}
-                    className="hover:text-white"
-                  >
-                    Clear
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-2 font-mono text-xs space-y-1">
-                  {consoleLogs.length === 0 && (
-                    <span className="text-gray-700 italic">Ready...</span>
-                  )}
-                  {consoleLogs.map((log) => (
-                    <div
-                      key={log.id}
-                      className={`${log.type === "error" ? "text-red-400" : log.type === "system" ? "text-yellow-500" : "text-gray-300"}`}
+              {/* Console & Simulation Split Pane */}
+              <div className="h-1/3 border-t border-gray-800 bg-black flex flex-row rounded-b-xl overflow-hidden">
+                {/* Console Section */}
+                <div className="flex-1 flex flex-col border-r border-gray-800 min-w-0">
+                  <div className="px-4 py-2 bg-gray-900/90 text-gray-400 text-xs font-bold border-b border-gray-800 flex justify-between">
+                    <span>CONSOLE</span>
+                    <button
+                      onClick={() => setConsoleLogs([])}
+                      className="hover:text-white"
                     >
-                      <span className="opacity-50 mr-2">
-                        [{new Date(log.timestamp).toLocaleTimeString()}]
-                      </span>
-                      {log.message}
-                    </div>
-                  ))}
+                      Clear
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-2 font-mono text-xs space-y-1">
+                    {consoleLogs.length === 0 && (
+                      <span className="text-gray-700 italic">Ready...</span>
+                    )}
+                    {consoleLogs.map((log) => (
+                      <div
+                        key={log.id}
+                        className={`${log.type === "error" ? "text-red-400" : log.type === "system" ? "text-yellow-500" : "text-gray-300"}`}
+                      >
+                        <span className="opacity-50 mr-2">
+                          [{new Date(log.timestamp).toLocaleTimeString()}]
+                        </span>
+                        {log.message}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Simulation View Section */}
+                <div className="w-[40%] bg-gray-900 relative border-l border-gray-800">
+                  <SimulationViewer state={simState} />
                 </div>
               </div>
             </div>
