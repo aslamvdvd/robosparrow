@@ -112,7 +112,7 @@ function Studio() {
 
   // Draggable Editor State
   const [editorPos, setEditorPos] = useState({
-    x: window.innerWidth - 620,
+    x: Math.max(100, window.innerWidth - 1100),
     y: 20,
   });
   const [isDraggingEditor, setIsDraggingEditor] = useState(false);
@@ -1099,44 +1099,7 @@ function Studio() {
             </div>
 
             <div className="flex-1 overflow-hidden relative">
-              {activeTab === "editor" && (
-                <div className="h-full flex flex-col">
-                  <textarea
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    className="flex-1 bg-gray-950 text-blue-300 p-4 font-mono text-sm resize-none focus:outline-none leading-relaxed"
-                    spellCheck={false}
-                  />
-                  {/* Console Output */}
-                  <div className="h-1/3 border-t border-gray-800 bg-black flex flex-col">
-                    <div className="px-4 py-2 bg-gray-900 text-gray-400 text-xs font-bold border-b border-gray-800 flex justify-between">
-                      <span>CONSOLE</span>
-                      <button
-                        onClick={() => setConsoleLogs([])}
-                        className="hover:text-white"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-2 font-mono text-xs space-y-1">
-                      {consoleLogs.length === 0 && (
-                        <span className="text-gray-700 italic">Ready...</span>
-                      )}
-                      {consoleLogs.map((log) => (
-                        <div
-                          key={log.id}
-                          className={`${log.type === "error" ? "text-red-400" : log.type === "system" ? "text-yellow-500" : "text-gray-300"}`}
-                        >
-                          <span className="opacity-50 mr-2">
-                            [{new Date(log.timestamp).toLocaleTimeString()}]
-                          </span>
-                          {log.message}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* Legacy Editor Removed */}
 
               {/* Chat View - Always Visible */}
               <div className="h-full flex flex-col bg-gray-900">
