@@ -110,6 +110,14 @@ function Studio() {
   const [showApiKey, setShowApiKey] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Draggable Editor State
+  const [editorPos, setEditorPos] = useState({
+    x: window.innerWidth - 620,
+    y: 20,
+  });
+  const [isDraggingEditor, setIsDraggingEditor] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+
   // Refs for Simulation Loop
   const requestRef = useRef<number | null>(null);
   const simIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -542,6 +550,32 @@ function Studio() {
     // Optional: Load from LocalStorage if persisted
   }, []);
 
+  // Handle Editor Dragging
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDraggingEditor) {
+        setEditorPos({
+          x: e.clientX - dragStartRef.current.x,
+          y: e.clientY - dragStartRef.current.y,
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingEditor(false);
+    };
+
+    if (isDraggingEditor) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDraggingEditor]);
+
   return (
     <div className="flex h-screen bg-gray-950 text-gray-100 overflow-hidden font-sans">
       {/* Sidebar / Tools */}
@@ -639,10 +673,22 @@ function Studio() {
 
         {/* Workspace + Split Pane */}
         <div className="flex-1 flex overflow-hidden relative">
-          {/* Editor Panel Overlay */}
+          {/* Editor Panel Overlay (Draggable) */}
           {activeTab === "editor" && (
-            <div className="absolute top-4 right-4 bottom-4 w-[600px] bg-gray-900/95 backdrop-blur border border-gray-700 rounded-xl shadow-2xl flex flex-col z-40 animate-in fade-in slide-in-from-right-10 duration-200">
-              <div className="p-2 border-b border-gray-800 bg-gray-800/50 flex items-center justify-between">
+            <div
+              style={{ left: editorPos.x, top: editorPos.y }}
+              className="absolute w-[600px] h-[600px] bg-gray-900/95 backdrop-blur border border-gray-700 rounded-xl shadow-2xl flex flex-col z-50 transition-shadow duration-200"
+            >
+              <div
+                className="p-2 border-b border-gray-800 bg-gray-800/50 flex items-center justify-between cursor-move select-none"
+                onMouseDown={(e) => {
+                  setIsDraggingEditor(true);
+                  dragStartRef.current = {
+                    x: e.clientX - editorPos.x,
+                    y: e.clientY - editorPos.y,
+                  };
+                }}
+              >
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-gray-400 uppercase">
                     Target MCU:
