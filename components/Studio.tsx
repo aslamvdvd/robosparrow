@@ -1233,10 +1233,6 @@ function Studio() {
                 </div>
               )}
             </div>
-
-            <div className="h-64 border-t border-gray-700 bg-gray-900 p-2">
-              <SimulationViewer state={simState} />
-            </div>
           </div>
         </div>
       </div>
