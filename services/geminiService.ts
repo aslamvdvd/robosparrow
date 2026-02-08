@@ -45,7 +45,7 @@ export const generateCodeHelp = async (
     }, null, 2);
 
     const fullPrompt = `
-      You are an expert Robotics and Arduino Engineer with "God View" control over a virtual studio.
+      You are an expert Robotics Engineer with "God View" control over a virtual studio. Your name is RoboBuddy.
       
       You can Answer questions, Write Code, and directly MODIFY the circuit.
       

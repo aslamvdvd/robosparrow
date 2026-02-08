@@ -1,0 +1,198 @@
+import { useState, useRef, useEffect } from "react";
+import {
+  generateCodeHelp,
+  analyzeCircuit,
+  GEMINI_MODELS,
+  GeminiModelId,
+} from "../services/geminiService";
+import { PlacedComponent, Connection, LogType, ComponentType } from "../types";
+import { COMPONENT_LIBRARY, INITIAL_CODE } from "../constants";
+
+interface UseAgentProps {
+  apiKey: string;
+  setApiKey: (key: string) => void;
+  selectedModel: GeminiModelId;
+  setSelectedModel: (model: GeminiModelId) => void;
+  code: string;
+  setCode: (code: string) => void;
+  components: PlacedComponent[];
+  setComponents: (comps: PlacedComponent[]) => void;
+  connections: Connection[];
+  setConnections: (conns: Connection[]) => void;
+  logToConsole: (msg: string, type?: LogType) => void;
+  activeMcuUid: string | null;
+}
+
+export const useAgent = ({
+  apiKey,
+  setApiKey,
+  selectedModel,
+  setSelectedModel,
+  code,
+  setCode,
+  components,
+  setComponents,
+  connections,
+  setConnections,
+  logToConsole,
+  activeMcuUid,
+}: UseAgentProps) => {
+  const [chatInput, setChatInput] = useState("");
+  const [chatHistory, setChatHistory] = useState<
+    { role: "user" | "ai"; text: string }[]
+  >([]);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Load API key and model from localStorage on mount
+  useEffect(() => {
+    const savedKey = localStorage.getItem("robo-sparrow-api-key");
+    if (savedKey) {
+      setApiKey(savedKey);
+    }
+    // Always enforce the first model (Gemini 3) as per task requirements
+    setSelectedModel(GEMINI_MODELS[0].id);
+  }, []);
+
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setIsAiLoading(false);
+  };
+
+  const handleChatSubmit = async (retryMsg?: string) => {
+    const msg = retryMsg || chatInput;
+    if (!msg.trim()) return;
+
+    if (!retryMsg) {
+      setChatInput("");
+      setChatHistory((prev) => [...prev, { role: "user", text: msg }]);
+    }
+    setIsAiLoading(true);
+
+    // Pass full state to AI
+    try {
+      const response = await generateCodeHelp(
+        apiKey,
+        selectedModel,
+        msg,
+        code,
+        components,
+        connections,
+      );
+
+      // Parse JSON Actions (Agentic Capabilities)
+      
+      const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+          const actionData = JSON.parse(jsonMatch[1]);
+          if (
+            actionData.action === "UPDATE_CIRCUIT" &&
+            Array.isArray(actionData.operations)
+          ) {
+            console.log("Executing Agent Actions:", actionData.operations);
+
+            const newComponents = [...components];
+            const newConnections = [...connections];
+            let lastAddedUid = "";
+
+            for (const op of actionData.operations) {
+              if (op.type === "ADD_COMPONENT") {
+                const libComp = COMPONENT_LIBRARY.find(
+                  (c) => c.id === op.componentId,
+                );
+                if (libComp) {
+                  lastAddedUid = Math.random().toString(36).substr(2, 9);
+                  newComponents.push({
+                    ...libComp,
+                    uid: lastAddedUid,
+                    position: { x: op.x || 300, y: op.y || 300 },
+                    // If it's an MCU, give it default code
+                    code:
+                      libComp.type === ComponentType.MICROCONTROLLER
+                        ? INITIAL_CODE
+                        : undefined,
+                  });
+                }
+              } else if (op.type === "CONNECT") {
+                const fromUid =
+                  op.from.compUid === "LAST_ADDED"
+                    ? lastAddedUid
+                    : op.from.compUid;
+                const toUid =
+                  op.to.compUid === "LAST_ADDED" ? lastAddedUid : op.to.compUid;
+
+                if (fromUid && toUid) {
+                  newConnections.push({
+                    id: Math.random().toString(36).substr(2, 9),
+                    from: { type: "pin", compUid: fromUid, pinId: op.from.pinId },
+                    to: { type: "pin", compUid: toUid, pinId: op.to.pinId },
+                    waypoints: [],
+                    color: op.color || "#3b82f6",
+                  });
+                }
+              } else if (op.type === "UPDATE_CODE") {
+                const targetUid =
+                  op.targetCompUid === "LAST_ADDED"
+                    ? lastAddedUid
+                    : op.targetCompUid;
+                const targetMcu = newComponents.find((c) => c.uid === targetUid);
+                if (targetMcu) {
+                  targetMcu.code = op.code;
+                  // If we updated the currently active MCU, simplify update the editor too
+                  if (targetUid === activeMcuUid) {
+                    setCode(op.code);
+                  }
+                }
+              } else if (op.type === "DELETE_COMPONENT") {
+                const idx = newComponents.findIndex((c) => c.uid === op.uid);
+                if (idx !== -1) newComponents.splice(idx, 1);
+              } else if (op.type === "DELETE_CONNECTION") {
+                const idx = newConnections.findIndex((c) => c.id === op.id);
+                if (idx !== -1) newConnections.splice(idx, 1);
+              }
+            }
+            setComponents(newComponents);
+            setConnections(newConnections);
+            logToConsole("Agent modified the circuit.", "system");
+          }
+        }
+      
+      setChatHistory((prev) => [...prev, { role: "ai", text: response }]);
+    } catch (e) {
+      console.error("Agent Error", e);
+      setChatHistory((prev) => [...prev, { role: "ai", text: "Error generating response." }]);
+    }
+    
+    setIsAiLoading(false);
+  };
+
+  const handleAnalyze = async (switchToChat: () => void) => {
+    setIsAiLoading(true);
+    switchToChat();
+    const response = await analyzeCircuit(
+      apiKey,
+      selectedModel,
+      components,
+      connections,
+    );
+    setChatHistory((prev) => [
+      ...prev,
+      { role: "user", text: "Analyze my circuit." },
+      { role: "ai", text: response },
+    ]);
+    setIsAiLoading(false);
+  };
+
+  return {
+    chatInput,
+    setChatInput,
+    chatHistory,
+    setChatHistory,
+    isAiLoading,
+    handleChatSubmit,
+    handleStopGeneration,
+    handleAnalyze
+  };
+};
