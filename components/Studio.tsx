@@ -542,10 +542,14 @@ function Studio() {
       setTransform((prev) => ({ ...prev, scale: newScale }));
     } else {
       // Pan on wheel
+      // If Shift is pressed, treat vertical scroll as horizontal (standard behavior)
+      const dx = e.shiftKey && e.deltaY !== 0 ? e.deltaY : e.deltaX;
+      const dy = e.shiftKey && e.deltaY !== 0 ? 0 : e.deltaY;
+
       setTransform((prev) => ({
         ...prev,
-        x: prev.x - e.deltaX,
-        y: prev.y - e.deltaY,
+        x: prev.x - dx,
+        y: prev.y - dy,
       }));
     }
   };
