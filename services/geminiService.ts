@@ -38,7 +38,6 @@ export const getGeminiApiKey = (): string | null => {
     // @ts-ignore
     const envKey = process.env.GEMINI_API_KEY;
     if (envKey) {
-        console.log("[GeminiService] Using API Key from process.env");
         return envKey;
     }
   } catch (e) {
