@@ -10,6 +10,7 @@ import {
   ComponentType, // Import ComponentType
 } from "../types";
 import ComponentCard from "./ComponentCard";
+import Minimap from "./Minimap";
 import WorkspaceComponent from "./WorkspaceComponent";
 import SimulationViewer from "./SimulationViewer";
 import {
@@ -148,6 +149,10 @@ function Studio() {
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
+  const [viewportSize, setViewportSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
 
   // Refs for Simulation Loop
   const requestRef = useRef<number | null>(null);
@@ -640,6 +645,15 @@ function Studio() {
     // Optional: Load from LocalStorage if persisted
   }, []);
 
+  // Initialization
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // Handle Editor Dragging
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -1051,6 +1065,13 @@ function Studio() {
                 <Maximize size={16} />
               </button>
             </div>
+            {/* Minimap */}
+            <Minimap
+              components={components}
+              transform={transform}
+              viewportSize={viewportSize}
+              onNavigate={(x, y) => setTransform((prev) => ({ ...prev, x, y }))}
+            />
             {/* Hint Overlay */}
             <div className="absolute bottom-4 left-4 pointer-events-none text-gray-500 text-xs">
               {selectedPin
