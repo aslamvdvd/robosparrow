@@ -33,6 +33,9 @@ import {
   X,
   Eye,
   EyeOff,
+  HardDrive as HardDriveIcon,
+  Eraser,
+  StopCircle,
 } from "lucide-react";
 
 // Types for simulation loop
@@ -105,6 +108,7 @@ function Studio() {
     useState<GeminiModelId>("gemini-1.5-flash");
   const [showSettings, setShowSettings] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Refs for Simulation Loop
   const requestRef = useRef<number | null>(null);
@@ -451,6 +455,12 @@ function Studio() {
                   setCode(op.code);
                 }
               }
+            } else if (op.type === "DELETE_COMPONENT") {
+              const idx = newComponents.findIndex((c) => c.uid === op.uid);
+              if (idx !== -1) newComponents.splice(idx, 1);
+            } else if (op.type === "DELETE_CONNECTION") {
+              const idx = newConnections.findIndex((c) => c.id === op.id);
+              if (idx !== -1) newConnections.splice(idx, 1);
             }
           }
           setComponents(newComponents);
@@ -464,6 +474,26 @@ function Studio() {
 
     setChatHistory((prev) => [...prev, { role: "ai", text: response }]);
     setIsAiLoading(false);
+  };
+
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setIsAiLoading(false);
+  };
+
+  const handleClearCanvas = () => {
+    if (
+      confirm(
+        "Are you sure you want to clear the canvas? This cannot be undone.",
+      )
+    ) {
+      setComponents([]);
+      setConnections([]);
+      setConsoleLogs([]);
+      stopSimulation();
+    }
   };
 
   const handleAnalyze = async () => {
@@ -507,69 +537,9 @@ function Studio() {
   // Save model to localStorage when changed
 
   // --- Initialization ---
+  // Clean slate on load
   useEffect(() => {
-    if (components.length === 0) {
-      const arduino = {
-        ...COMPONENT_LIBRARY[0],
-        uid: "arduino-1",
-        position: { x: 50, y: 50 },
-        code: INITIAL_CODE, // Initialize with default code
-      };
-      const driver = {
-        ...COMPONENT_LIBRARY[1],
-        uid: "driver-1",
-        position: { x: 300, y: 50 },
-      };
-      const mLeft = {
-        ...COMPONENT_LIBRARY[2],
-        uid: "motor-l",
-        position: { x: 50, y: 300 },
-        properties: { position: "left" },
-      };
-      const mRight = {
-        ...COMPONENT_LIBRARY[2],
-        uid: "motor-r",
-        position: { x: 250, y: 300 },
-        properties: { position: "right" },
-      };
-
-      setComponents([arduino, driver, mLeft, mRight]);
-
-      setConnections([
-        {
-          id: "w1",
-          from: { type: "pin", compUid: "arduino-1", pinId: "D5" },
-          to: { type: "pin", compUid: "driver-1", pinId: "IN1" },
-          waypoints: [],
-          color: "#22c55e",
-        },
-        {
-          id: "w2",
-          from: { type: "pin", compUid: "arduino-1", pinId: "D6" },
-          to: { type: "pin", compUid: "driver-1", pinId: "IN2" },
-          waypoints: [],
-          color: "#ef4444",
-        },
-        {
-          id: "w3",
-          from: { type: "pin", compUid: "arduino-1", pinId: "D9" },
-          to: { type: "pin", compUid: "driver-1", pinId: "IN3" },
-          waypoints: [],
-          color: "#3b82f6",
-        },
-        {
-          id: "w4",
-          from: { type: "pin", compUid: "arduino-1", pinId: "D10" },
-          to: { type: "pin", compUid: "driver-1", pinId: "IN4" },
-          waypoints: [],
-          color: "#eab308",
-        },
-      ]);
-
-      // Default to the first arduino
-      setActiveMcuUid("arduino-1");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Optional: Load from LocalStorage if persisted
   }, []);
 
   return (
@@ -620,7 +590,7 @@ function Studio() {
             <h1 className="font-bold text-lg tracking-tight">
               RoboLab{" "}
               <span className="text-blue-500 text-xs uppercase ml-1 border border-blue-900 bg-blue-900/20 px-1 rounded">
-                Beta
+                Alpha
               </span>
             </h1>
             {selectedCompId && (
@@ -655,6 +625,12 @@ function Studio() {
             >
               <RefreshCw className="w-4 h-4" /> Analyze Circuit
             </button>
+            <button
+              onClick={handleClearCanvas}
+              className="flex items-center gap-2 px-4 py-2 bg-red-900/40 hover:bg-red-900/60 text-red-300 border border-red-900/50 rounded-md font-medium text-sm transition-all"
+            >
+              <Eraser className="w-4 h-4" /> Clear
+            </button>
             <button className="p-2 text-gray-400 hover:text-white">
               <Download className="w-4 h-4" />
             </button>
@@ -662,10 +638,10 @@ function Studio() {
         </header>
 
         {/* Workspace + Split Pane */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Main Content Area */}
-          {activeTab === "editor" ? (
-            <div className="flex-1 flex flex-col bg-gray-900 border-r border-gray-800">
+        <div className="flex-1 flex overflow-hidden relative">
+          {/* Editor Panel Overlay */}
+          {activeTab === "editor" && (
+            <div className="absolute top-4 right-4 bottom-4 w-[600px] bg-gray-900/95 backdrop-blur border border-gray-700 rounded-xl shadow-2xl flex flex-col z-40 animate-in fade-in slide-in-from-right-10 duration-200">
               <div className="p-2 border-b border-gray-800 bg-gray-800/50 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-gray-400 uppercase">
@@ -688,7 +664,15 @@ function Studio() {
                     ).length === 0 && <option value="">No MCUs found</option>}
                   </select>
                 </div>
-                <span className="text-xs text-gray-500">main.js</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">main.js</span>
+                  <button
+                    onClick={() => setActiveTab(null)}
+                    className="text-gray-400 hover:text-white"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
               </div>
               <textarea
                 className="flex-1 bg-[#1e1e1e] text-gray-300 font-mono p-4 resize-none outline-none text-sm"
@@ -702,73 +686,40 @@ function Studio() {
                     : "// Write your code here..."
                 }
               />
+              {/* Console Output in Overlay */}
+              <div className="h-1/3 border-t border-gray-800 bg-black flex flex-col rounded-b-xl overflow-hidden">
+                <div className="px-4 py-2 bg-gray-900/90 text-gray-400 text-xs font-bold border-b border-gray-800 flex justify-between">
+                  <span>CONSOLE</span>
+                  <button
+                    onClick={() => setConsoleLogs([])}
+                    className="hover:text-white"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-2 font-mono text-xs space-y-1">
+                  {consoleLogs.length === 0 && (
+                    <span className="text-gray-700 italic">Ready...</span>
+                  )}
+                  {consoleLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className={`${log.type === "error" ? "text-red-400" : log.type === "system" ? "text-yellow-500" : "text-gray-300"}`}
+                    >
+                      <span className="opacity-50 mr-2">
+                        [{new Date(log.timestamp).toLocaleTimeString()}]
+                      </span>
+                      {log.message}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          ) : (
-            <></>
           )}
 
-          {/* Left/Main Panel: Workspace or Component Library (Always Visible if not editor, or shared? The original design had an overlay. Let's keep the workspace visible and overlay the library) 
-              Actually, the original return had the workspace as the main flex-1 div. 
-              Let's Wrap the workspace in a div that is hidden if activeTab === 'editor' to simulate a full page editor, OR split view.
-              The user asked specifically "make the code panel in a way...". 
-              Let's make the editor a full tab replacing the workspace for now, or side-by-side? 
-              The original code had an 'activeTab' content switching logic implicitly or overlays. 
-              
-              Looking at original code:
-              <div className="flex-1 flex overflow-hidden">
-                 <div className="flex-1 relative..." ...> -> This was the workspace.
-              
-              The Library was an absolute overlay: {activeTab === "library" && ...}
-              
-              I will conditionally render the Workspace OR the Editor to give full focus, 
-              OR keep the workspace and make the Editor an overlay too suitable for "God View".
-              
-              But existing code had `activeTab` switching. 
-              If I replace the workspace with the editor, I lose the ability to see the robot while coding?
-              
-              The original code rendered the workspace UNCONDITIONALLY in the main div:
-              <div className="flex-1 relative bg-gray-950 grid-pattern overflow-hidden">
-              
-              And the Editor was... nowhere in the original JSX? 
-              Wait, looking at the previous file view of Studio.tsx...
-              I missed where the Editor was rendered!
-              
-              Ah, I see `activeTab === "editor"` was used in the `Sidebar` buttons.
-              But I don't see the conditional rendering for the Editor in the `Main Content Area` in the snippet I viewed (lines 1-800).
-              It might have been further down or missing?
-              
-              Wait, `activeTab` is state. 
-              The snippet ended at line 800. The file has 1023 lines.
-              The interactions (library drawer) were overlays.
-              
-              I suspect the editor panel IS NOT IMPLEMENTED in the main view yet, or it was at the bottom.
-              
-              Let's assume I need to ADD the editor panel into the layout.
-              
-              I will structure it as:
-              <div className="flex-1 flex overflow-hidden">
-                {activeTab === 'editor' ? <EditorPanel /> : <Workspace />}
-              </div>
-              
-              But the user wants "God View", presumably referring to the Agent seeing everything.
-              
-              Let's implement a Split View or Tab View.
-              
-              If Use Tab View:
-              If activeTab === 'editor': Show Editor
-              Else: Show Workspace.
-              
-              BUT, the original code had:
-              {activeTab === "library" && ( ...overlay... )}
-              
-              I will implement the logic:
-              If activeTab === 'editor', show the editor.
-              Otherwise, show the workspace.
-              
-          */}
-
+          {/* Main Workspace (Always Visible) */}
           <div
-            className={`flex-1 flex flex-col relative ${activeTab === "editor" ? "hidden" : "flex"}`}
+            className="flex-1 relative bg-gray-950 grid-pattern overflow-hidden flex flex-col"
             onClick={() => {
               setSelectedCompId(null);
               setSelectedWireId(null);
@@ -1000,7 +951,7 @@ function Studio() {
                     Components
                   </h2>
                   <button
-                    onClick={() => setActiveTab("editor")}
+                    onClick={() => setActiveTab(null)} // Close panel
                     className="text-gray-400 hover:text-white"
                   >
                     &times;
@@ -1086,12 +1037,6 @@ function Studio() {
           <div className="w-[450px] bg-gray-900 border-l border-gray-800 flex flex-col shadow-2xl z-20">
             {/* Context Switcher in Right Panel */}
             <div className="flex border-b border-gray-800">
-              <button
-                onClick={() => setActiveTab("editor")}
-                className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide border-b-2 ${activeTab === "editor" ? "border-blue-500 text-white" : "border-transparent text-gray-500 hover:text-gray-300"}`}
-              >
-                Code
-              </button>
               <button
                 onClick={() => setActiveTab("chat")}
                 className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide border-b-2 ${activeTab === "chat" ? "border-blue-500 text-white" : "border-transparent text-gray-500 hover:text-gray-300"}`}
@@ -1210,10 +1155,19 @@ function Studio() {
                         className="w-full bg-gray-950 border border-gray-700 rounded-full py-2 pl-4 pr-10 text-sm text-white focus:border-blue-500 focus:outline-none"
                       />
                       <button
-                        onClick={() => handleChatSubmit()}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-500 hover:text-blue-400 p-1"
+                        onClick={() =>
+                          isAiLoading
+                            ? handleStopGeneration()
+                            : handleChatSubmit()
+                        }
+                        className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 ${isAiLoading ? "text-red-500 hover:text-red-400" : "text-blue-500 hover:text-blue-400"}`}
+                        title={isAiLoading ? "Stop Generating" : "Send Message"}
                       >
-                        <Send size={16} />
+                        {isAiLoading ? (
+                          <StopCircle size={16} />
+                        ) : (
+                          <Send size={16} />
+                        )}
                       </button>
                     </div>
                     <div className="flex items-center gap-2 mt-2">
@@ -1238,25 +1192,5 @@ function Studio() {
 }
 
 // Icon helper
-function HardDriveIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="22" y1="12" x2="2" y2="12"></line>
-      <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
-      <line x1="6" y1="16" x2="6.01" y2="16"></line>
-      <line x1="10" y1="16" x2="10.01" y2="16"></line>
-    </svg>
-  );
-}
 
 export default Studio;

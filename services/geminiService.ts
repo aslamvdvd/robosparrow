@@ -70,7 +70,9 @@ export const generateCodeHelp = async (
         "operations": [
           { "type": "ADD_COMPONENT", "componentId": "led-red", "x": 300, "y": 300 },
           { "type": "CONNECT", "from": { "compUid": "arduino-1", "pinId": "D13" }, "to": { "compUid": "LAST_ADDED", "pinId": "POS" }, "color": "red" },
-          { "type": "UPDATE_CODE", "targetCompUid": "arduino-1", "code": "// New code here..." }
+          { "type": "UPDATE_CODE", "targetCompUid": "arduino-1", "code": "// New code here..." },
+          { "type": "DELETE_COMPONENT", "uid": "component-uid-to-delete" },
+          { "type": "DELETE_CONNECTION", "id": "connection-id-to-delete" }
         ]
       }
       \`\`\`
