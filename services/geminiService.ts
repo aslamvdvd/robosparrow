@@ -204,3 +204,47 @@ export const analyzeCircuit = async (
     return `Error: ${error.message || 'Unknown error analyzing circuit.'}`;
   }
 }
+export const transpileCode = async (
+  apiKey: string,
+  model: GeminiModelId,
+  code: string
+): Promise<string> => {
+  if (!apiKey) throw new Error("API Key required");
+
+  const ai = createAIClient(apiKey);
+  const prompt = `
+    Turn this Arduino C++ code into JavaScript for a simulation sandbox.
+    
+    RULES:
+    1. Map 'digitalWrite(pin, val)' to '__writePin(pin, val)'.
+    2. Map 'analogWrite(pin, val)' to '__pwmPin(pin, val)'.
+    3. Map 'digitalRead(pin)' to '__readPin(pin)'.
+    4. Map 'analogRead(pin)' to '__readAnalog(pin)'.
+    5. Map 'Serial.println()' to '__log()'.
+    6. Maintain logic (variables, loops, ifs).
+    7. Convert 'int', 'float', 'bool' to 'let'.
+    8. Output ONLY the JavaScript code (no markdown, no explanations).
+    9. Separate 'setup()' and 'loop()' bodies if possible, or just give me the raw JS equivalent of what's inside them.
+    
+    Actually, returned format must be JSON:
+    {
+      "setup": "JS code for setup",
+      "loop": "JS code for loop"
+    }
+
+    C++ CODE:
+    ${code}
+  `;
+
+  const response = await ai.models.generateContent({
+    model,
+    contents: prompt,
+    // generationConfig: { responseMimeType: "application/json" } // Not supported in this SDK version likely?
+    // Let's rely on prompt instructions for JSON
+  });
+  
+  const text = response.text || "{}";
+  // Clean markdown if present
+  const cleanText = text.replace(/```json|```/g, "").trim();
+  return cleanText;
+};

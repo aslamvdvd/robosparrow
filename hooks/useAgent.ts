@@ -22,7 +22,7 @@ interface UseAgentProps {
   logToConsole: (msg: string, type?: LogType) => void;
   activeMcuUid: string | null;
   // New props for Control
-  runSimulation: () => void;
+  runSimulation: () => void | Promise<void>;
   stopSimulation: () => void;
   setConsoleLogs: (logs: any[]) => void;
   setActiveMcuUid: (uid: string) => void;

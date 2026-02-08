@@ -13,7 +13,7 @@ interface TopBarProps {
   selectedCompId: string | null;
   deleteComponent: () => void;
   simState: SimulationState;
-  runSimulation: () => void;
+  runSimulation: () => void | Promise<void>;
   stopSimulation: () => void;
   handleAnalyze: () => void;
   handleClearCanvas: () => void;

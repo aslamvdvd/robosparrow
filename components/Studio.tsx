@@ -58,7 +58,7 @@ function Studio() {
     runSimulation,
     stopSimulation,
     logToConsole,
-  } = useSimulation({ code, components });
+  } = useSimulation({ code, components, connections });
 
   // API Key State
   const [apiKey, setApiKey] = useState<string>("");

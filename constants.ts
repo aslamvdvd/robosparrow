@@ -80,7 +80,11 @@ export const COMPONENT_LIBRARY: ComponentData[] = [
       { id: 'OUT4', name: 'OUT4', type: 'power', x: 110, y: 100 },
       { id: '12V', name: '12V', type: 'power', x: 60, y: 110 },
       { id: 'GND', name: 'GND', type: 'ground', x: 60, y: 10 },
-    ]
+    ],
+    simulation: {
+      type: 'driver',
+      logic: { type: 'H-BRIDGE' } // Special handling in sim engine
+    }
   },
   {
     id: 'dc-motor-wheel',
@@ -95,6 +99,11 @@ export const COMPONENT_LIBRARY: ComponentData[] = [
     ],
     properties: {
       position: 'left' // or right
+    },
+    simulation: {
+      type: 'motor',
+      maxSpeed: 5, // speed unit
+      force: 0.1 // rotation force
     }
   },
   {
@@ -227,6 +236,7 @@ export const COMPONENT_LIBRARY: ComponentData[] = [
       { id: "C", name: "C (-)", type: "ground", x: 30, y: 30 },
     ],
     properties: { color: "#ef4444" },
+    simulation: { type: 'led', color: "#ef4444" }
   },
   {
     id: "led-green",
@@ -240,6 +250,7 @@ export const COMPONENT_LIBRARY: ComponentData[] = [
       { id: "C", name: "C (-)", type: "ground", x: 30, y: 30 },
     ],
     properties: { color: "#22c55e" },
+    simulation: { type: 'led', color: "#22c55e" }
   },
   {
     id: "led-blue",
@@ -253,6 +264,7 @@ export const COMPONENT_LIBRARY: ComponentData[] = [
       { id: "C", name: "C (-)", type: "ground", x: 30, y: 30 },
     ],
     properties: { color: "#3b82f6" },
+    simulation: { type: 'led', color: "#3b82f6" }
   },
   {
     id: "servo-sg90",

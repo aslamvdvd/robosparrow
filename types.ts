@@ -25,6 +25,16 @@ export interface ComponentData {
   width: number;
   height: number;
   properties?: Record<string, any>;
+  simulation?: {
+    type: 'motor' | 'driver' | 'led' | 'sensor';
+    // For Motors
+    maxSpeed?: number; // pixels per tick
+    force?: number; 
+    // For Drivers
+    logic?: Record<string, any>; // Truth table or logic type
+    // For LEDs
+    color?: string;
+  };
 }
 
 export interface PlacedComponent extends ComponentData {
