@@ -13,10 +13,19 @@ const LibraryPanel: React.FC<LibraryPanelProps> = ({
   addComponent,
   setActiveTab,
 }) => {
+  const [searchQuery, setSearchQuery] = React.useState("");
+
+  const filteredComponents = COMPONENT_LIBRARY.filter(
+    (c) =>
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
   return (
     <div
-      className="absolute top-4 left-4 w-64 bg-gray-900/90 backdrop-blur border border-gray-700 rounded-xl shadow-2xl p-4 flex flex-col gap-3 max-h-[80%] overflow-y-auto z-30 animate-in fade-in slide-in-from-left-4 duration-200"
+      className="absolute top-4 left-4 w-64 bg-gray-900/90 backdrop-blur border border-gray-700 rounded-xl shadow-2xl p-4 flex flex-col gap-3 max-h-[80%] overflow-y-auto overscroll-y-contain z-30 animate-in fade-in slide-in-from-left-4 duration-200"
       onClick={(e) => e.stopPropagation()}
+      onWheel={(e) => e.stopPropagation()} // Stop wheel propagation just in case
     >
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-sm font-bold text-white uppercase tracking-wider">
@@ -29,9 +38,22 @@ const LibraryPanel: React.FC<LibraryPanelProps> = ({
           &times;
         </button>
       </div>
+
+      {/* Search Input */}
+      <div className="relative mb-2">
+        <input
+          type="text"
+          placeholder="Search components..."
+          className="w-full bg-gray-800 text-gray-200 text-xs rounded px-3 py-2 border border-gray-700 focus:border-blue-500 focus:outline-none"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          autoFocus
+        />
+      </div>
+
       <div className="flex-1 overflow-y-auto space-y-6">
         {Object.entries(
-          COMPONENT_LIBRARY.reduce(
+          filteredComponents.reduce(
             (acc, component) => {
               const typeLabel =
                 {
@@ -65,6 +87,12 @@ const LibraryPanel: React.FC<LibraryPanelProps> = ({
             </div>
           </div>
         ))}
+
+        {filteredComponents.length === 0 && (
+          <div className="text-center text-gray-500 text-xs py-4">
+            No components found.
+          </div>
+        )}
       </div>
     </div>
   );
