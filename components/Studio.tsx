@@ -450,7 +450,7 @@ function Studio() {
               onNavigate={(x, y) => setTransform((prev) => ({ ...prev, x, y }))}
             />
             {/* Hint Overlay */}
-            <div className="absolute bottom-4 left-4 pointer-events-none text-gray-500 text-xs">
+            <div className="absolute top-4 left-4 pointer-events-none text-gray-500 text-xs">
               {selectedPin
                 ? "Select destination pin to connect..."
                 : "Drag components to move. Click pins to wire. Click wires to edit."}
