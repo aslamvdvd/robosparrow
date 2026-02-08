@@ -5,7 +5,7 @@ import {
   GEMINI_MODELS,
   GeminiModelId,
 } from "../services/geminiService";
-import { PlacedComponent, Connection, LogType, ComponentType } from "../types";
+import { PlacedComponent, Connection, LogType, ComponentType, AgentAction } from "../types";
 import { COMPONENT_LIBRARY, INITIAL_CODE } from "../constants";
 
 interface UseAgentProps {
@@ -21,6 +21,10 @@ interface UseAgentProps {
   setConnections: (conns: Connection[]) => void;
   logToConsole: (msg: string, type?: LogType) => void;
   activeMcuUid: string | null;
+  // New props for Control
+  runSimulation: () => void;
+  stopSimulation: () => void;
+  setConsoleLogs: (logs: any[]) => void;
 }
 
 export const useAgent = ({
@@ -36,6 +40,9 @@ export const useAgent = ({
   setConnections,
   logToConsole,
   activeMcuUid,
+  runSimulation,
+  stopSimulation,
+  setConsoleLogs,
 }: UseAgentProps) => {
   const [chatInput, setChatInput] = useState("");
   const [chatHistory, setChatHistory] = useState<
@@ -43,6 +50,12 @@ export const useAgent = ({
   >([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Agent Control State
+  const [agentMode, setAgentMode] = useState<"auto" | "manual">("manual");
+  const [pendingActions, setPendingActions] = useState<AgentAction[] | null>(
+    null,
+  );
 
   // Load API key and model from localStorage on mount
   useEffect(() => {
@@ -59,6 +72,98 @@ export const useAgent = ({
       abortControllerRef.current.abort();
     }
     setIsAiLoading(false);
+  };
+
+  // Execute Actions
+  const executeActions = (actions: AgentAction[]) => {
+    console.log("Executing Agent Actions:", actions);
+
+    const newComponents = [...components];
+    const newConnections = [...connections];
+    let lastAddedUid = "";
+
+    for (const op of actions) {
+      if (op.type === "ADD_COMPONENT") {
+        const libComp = COMPONENT_LIBRARY.find((c) => c.id === op.componentId);
+        if (libComp) {
+          lastAddedUid = Math.random().toString(36).substr(2, 9);
+          newComponents.push({
+            ...libComp,
+            uid: lastAddedUid,
+            position: { x: op.x || 300, y: op.y || 300 },
+            // If it's an MCU, give it default code
+            code:
+              libComp.type === ComponentType.MICROCONTROLLER
+                ? INITIAL_CODE
+                : undefined,
+          });
+        }
+      } else if (op.type === "CONNECT") {
+        const fromUid =
+          op.from?.compUid === "LAST_ADDED" ? lastAddedUid : op.from?.compUid;
+        const toUid =
+          op.to?.compUid === "LAST_ADDED" ? lastAddedUid : op.to?.compUid;
+
+        if (fromUid && toUid && op.from?.pinId && op.to?.pinId) {
+          newConnections.push({
+            id: Math.random().toString(36).substr(2, 9),
+            from: { type: "pin", compUid: fromUid, pinId: op.from.pinId },
+            to: { type: "pin", compUid: toUid, pinId: op.to.pinId },
+            waypoints: [],
+            color: op.color || "#3b82f6",
+          });
+        }
+      } else if (op.type === "UPDATE_CODE") {
+        const targetUid =
+          op.targetCompUid === "LAST_ADDED" ? lastAddedUid : op.targetCompUid;
+        const targetMcu = newComponents.find((c) => c.uid === targetUid);
+        if (targetMcu && op.code) {
+          targetMcu.code = op.code;
+          // If we updated the currently active MCU, simplify update the editor too
+          if (targetUid === activeMcuUid) {
+            setCode(op.code);
+          }
+        }
+      } else if (op.type === "DELETE_COMPONENT") {
+        const idx = newComponents.findIndex((c) => c.uid === op.uid);
+        if (idx !== -1) newComponents.splice(idx, 1);
+      } else if (op.type === "DELETE_CONNECTION") {
+        const idx = newConnections.findIndex((c) => c.id === op.id);
+        if (idx !== -1) newConnections.splice(idx, 1);
+      } else if (op.type === "START_SIMULATION") {
+        runSimulation();
+        logToConsole("Agent started simulation", "system");
+      } else if (op.type === "STOP_SIMULATION") {
+        stopSimulation();
+        logToConsole("Agent stopped simulation", "system");
+      } else if (op.type === "CLEAR_CONSOLE") {
+        setConsoleLogs([]);
+      }
+    }
+    setComponents(newComponents);
+    setConnections(newConnections);
+    if (
+      actions.some(
+        (a) =>
+          a.type !== "START_SIMULATION" &&
+          a.type !== "STOP_SIMULATION" &&
+          a.type !== "CLEAR_CONSOLE",
+      )
+    ) {
+      logToConsole("Agent modified the circuit.", "system");
+    }
+  };
+
+  const handleApprove = () => {
+    if (pendingActions) {
+      executeActions(pendingActions);
+      setPendingActions(null);
+    }
+  };
+
+  const handleReject = () => {
+    setPendingActions(null);
+    logToConsole("User rejected agent actions.", "system");
   };
 
   const handleChatSubmit = async (retryMsg?: string) => {
@@ -83,88 +188,31 @@ export const useAgent = ({
       );
 
       // Parse JSON Actions (Agentic Capabilities)
-      
+
       const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
       if (jsonMatch) {
-          const actionData = JSON.parse(jsonMatch[1]);
-          if (
-            actionData.action === "UPDATE_CIRCUIT" &&
-            Array.isArray(actionData.operations)
-          ) {
-            console.log("Executing Agent Actions:", actionData.operations);
-
-            const newComponents = [...components];
-            const newConnections = [...connections];
-            let lastAddedUid = "";
-
-            for (const op of actionData.operations) {
-              if (op.type === "ADD_COMPONENT") {
-                const libComp = COMPONENT_LIBRARY.find(
-                  (c) => c.id === op.componentId,
-                );
-                if (libComp) {
-                  lastAddedUid = Math.random().toString(36).substr(2, 9);
-                  newComponents.push({
-                    ...libComp,
-                    uid: lastAddedUid,
-                    position: { x: op.x || 300, y: op.y || 300 },
-                    // If it's an MCU, give it default code
-                    code:
-                      libComp.type === ComponentType.MICROCONTROLLER
-                        ? INITIAL_CODE
-                        : undefined,
-                  });
-                }
-              } else if (op.type === "CONNECT") {
-                const fromUid =
-                  op.from.compUid === "LAST_ADDED"
-                    ? lastAddedUid
-                    : op.from.compUid;
-                const toUid =
-                  op.to.compUid === "LAST_ADDED" ? lastAddedUid : op.to.compUid;
-
-                if (fromUid && toUid) {
-                  newConnections.push({
-                    id: Math.random().toString(36).substr(2, 9),
-                    from: { type: "pin", compUid: fromUid, pinId: op.from.pinId },
-                    to: { type: "pin", compUid: toUid, pinId: op.to.pinId },
-                    waypoints: [],
-                    color: op.color || "#3b82f6",
-                  });
-                }
-              } else if (op.type === "UPDATE_CODE") {
-                const targetUid =
-                  op.targetCompUid === "LAST_ADDED"
-                    ? lastAddedUid
-                    : op.targetCompUid;
-                const targetMcu = newComponents.find((c) => c.uid === targetUid);
-                if (targetMcu) {
-                  targetMcu.code = op.code;
-                  // If we updated the currently active MCU, simplify update the editor too
-                  if (targetUid === activeMcuUid) {
-                    setCode(op.code);
-                  }
-                }
-              } else if (op.type === "DELETE_COMPONENT") {
-                const idx = newComponents.findIndex((c) => c.uid === op.uid);
-                if (idx !== -1) newComponents.splice(idx, 1);
-              } else if (op.type === "DELETE_CONNECTION") {
-                const idx = newConnections.findIndex((c) => c.id === op.id);
-                if (idx !== -1) newConnections.splice(idx, 1);
-              }
-            }
-            setComponents(newComponents);
-            setConnections(newConnections);
-            logToConsole("Agent modified the circuit.", "system");
+        const actionData = JSON.parse(jsonMatch[1]);
+        if (
+          actionData.action === "UPDATE_CIRCUIT" &&
+          Array.isArray(actionData.operations)
+        ) {
+          if (agentMode === "auto") {
+            executeActions(actionData.operations);
+          } else {
+            setPendingActions(actionData.operations);
           }
         }
-      
+      }
+
       setChatHistory((prev) => [...prev, { role: "ai", text: response }]);
     } catch (e) {
       console.error("Agent Error", e);
-      setChatHistory((prev) => [...prev, { role: "ai", text: "Error generating response." }]);
+      setChatHistory((prev) => [
+        ...prev,
+        { role: "ai", text: "Error generating response." },
+      ]);
     }
-    
+
     setIsAiLoading(false);
   };
 
@@ -193,6 +241,11 @@ export const useAgent = ({
     isAiLoading,
     handleChatSubmit,
     handleStopGeneration,
-    handleAnalyze
+    handleAnalyze,
+    agentMode,
+    setAgentMode,
+    pendingActions,
+    handleApprove,
+    handleReject,
   };
 };

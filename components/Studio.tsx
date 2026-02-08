@@ -76,6 +76,11 @@ function Studio() {
     handleChatSubmit,
     handleStopGeneration,
     handleAnalyze,
+    agentMode,
+    setAgentMode,
+    pendingActions,
+    handleApprove,
+    handleReject,
   } = useAgent({
     apiKey,
     setApiKey,
@@ -89,6 +94,9 @@ function Studio() {
     setConnections,
     logToConsole,
     activeMcuUid,
+    runSimulation,
+    stopSimulation,
+    setConsoleLogs,
   });
 
   // Save API key to localStorage when changed
@@ -542,6 +550,11 @@ function Studio() {
             setChatInput={setChatInput}
             handleChatSubmit={handleChatSubmit}
             handleStopGeneration={handleStopGeneration}
+            agentMode={agentMode}
+            setAgentMode={setAgentMode}
+            pendingActions={pendingActions}
+            handleApprove={handleApprove}
+            handleReject={handleReject}
           />
         </div>
       </div>

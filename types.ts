@@ -71,3 +71,34 @@ export interface ConsoleLog {
   type: LogType;
   timestamp: number;
 }
+
+// Agent Action Types
+export type AgentActionType = 
+  | 'ADD_COMPONENT' 
+  | 'CONNECT' 
+  | 'UPDATE_CODE' 
+  | 'DELETE_COMPONENT' 
+  | 'DELETE_CONNECTION'
+  | 'START_SIMULATION'
+  | 'STOP_SIMULATION'
+  | 'CLEAR_CONSOLE';
+
+export interface AgentAction {
+  type: AgentActionType;
+  // Specific fields for different actions
+  componentId?: string; // For ADD_COMPONENT
+  x?: number;
+  y?: number;
+  uid?: string; // For DELETE_COMPONENT
+  id?: string; // For DELETE_CONNECTION
+  from?: { compUid: string; pinId: string }; // For CONNECT
+  to?: { compUid: string; pinId: string }; // For CONNECT
+  color?: string; // For CONNECT
+  targetCompUid?: string; // For UPDATE_CODE
+  code?: string; // For UPDATE_CODE
+}
+
+export interface AgentResponse {
+  action: 'UPDATE_CIRCUIT';
+  operations: AgentAction[];
+}

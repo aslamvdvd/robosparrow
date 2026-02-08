@@ -2,6 +2,8 @@ import React, { useRef, useEffect } from "react";
 import { StopCircle, Send } from "lucide-react";
 import { GEMINI_MODELS } from "../services/geminiService";
 
+import { AgentAction } from "../types";
+
 interface ChatPanelProps {
   activeTab: string | null;
   setActiveTab: (tab: any) => void;
@@ -11,6 +13,12 @@ interface ChatPanelProps {
   setChatInput: (input: string) => void;
   handleChatSubmit: (retryMsg?: string) => void;
   handleStopGeneration: () => void;
+  // New props for Control
+  agentMode: "auto" | "manual";
+  setAgentMode: (mode: "auto" | "manual") => void;
+  pendingActions: AgentAction[] | null;
+  handleApprove: () => void;
+  handleReject: () => void;
 }
 
 const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -22,24 +30,50 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   setChatInput,
   handleChatSubmit,
   handleStopGeneration,
+  agentMode,
+  setAgentMode,
+  pendingActions,
+  handleApprove,
+  handleReject,
 }) => {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom of chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatHistory, isAiLoading]);
+  }, [chatHistory, isAiLoading, pendingActions]);
 
   return (
     <div className="w-[450px] bg-gray-900 border-l border-gray-800 flex flex-col shadow-2xl z-20">
-      {/* Context Switcher in Right Panel */}
-      <div className="flex border-b border-gray-800">
+      {/* Context Switcher & Mode Toggle */}
+      <div className="flex items-center justify-between border-b border-gray-800 px-4 bg-gray-900/50 backdrop-blur">
         <button
           onClick={() => setActiveTab("chat")}
-          className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide border-b-2 ${activeTab === "chat" ? "border-blue-500 text-white" : "border-transparent text-gray-500 hover:text-gray-300"}`}
+          className={`py-3 text-xs font-bold uppercase tracking-wide border-b-2 ${activeTab === "chat" ? "border-blue-500 text-white" : "border-transparent text-gray-500 hover:text-gray-300"}`}
         >
-          AI Assistant
+          RoboBuddy AI
         </button>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+            Auto-Apply
+          </span>
+          <button
+            onClick={() =>
+              setAgentMode(agentMode === "auto" ? "manual" : "auto")
+            }
+            className={`w-8 h-4 rounded-full transition-colors relative ${agentMode === "auto" ? "bg-blue-600" : "bg-gray-700"}`}
+            title={
+              agentMode === "auto"
+                ? "Changes apply immediately"
+                : "Ask for approval before changes"
+            }
+          >
+            <div
+              className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${agentMode === "auto" ? "left-4.5 translate-x-3.5" : "left-0.5"}`}
+            />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-hidden relative">
@@ -48,10 +82,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {chatHistory.length === 0 && (
               <div className="text-center text-gray-500 mt-10">
-                <p className="mb-2">👋 Hi! I'm Robo Sparrow AI.</p>
+                <p className="mb-2">👋 Hi! I'm RoboBuddy.</p>
                 <p className="text-xs">
                   Ask me to generate code, explain circuits, or debug issues.
                 </p>
+                <div className="mt-4 p-3 bg-blue-900/20 rounded-lg text-xs text-blue-300 border border-blue-900/50">
+                  Tip: Switch "Auto-Apply" ON to let me control the studio
+                  directly!
+                </div>
               </div>
             )}
             {chatHistory.map((msg, idx) => {
@@ -87,6 +125,49 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                 </div>
               );
             })}
+
+            {/* Pending Actions Card */}
+            {pendingActions && pendingActions.length > 0 && (
+              <div className="mx-4 my-2 bg-gray-800 border-l-4 border-yellow-500 rounded-lg p-4 shadow-lg animate-in slide-in-from-bottom-5 fade-in duration-300">
+                <h4 className="text-sm font-bold text-yellow-500 mb-2 flex items-center gap-2">
+                  ⚠️ Approval Required
+                </h4>
+                <p className="text-xs text-gray-300 mb-3">
+                  RoboBuddy wants to perform {pendingActions.length} actions:
+                </p>
+                <ul className="text-xs text-gray-400 list-disc list-inside mb-4 space-y-1 bg-gray-900/50 p-2 rounded">
+                  {pendingActions
+                    .map((action, i) => (
+                      <li key={i}>
+                        {action.type}
+                        {action.type === "ADD_COMPONENT" &&
+                          ` (${action.componentId})`}
+                        {action.type === "UPDATE_CODE" &&
+                          ` (Target: ${action.targetCompUid?.substr(0, 4)})`}
+                      </li>
+                    ))
+                    .slice(0, 5)}
+                  {pendingActions.length > 5 && (
+                    <li>...and {pendingActions.length - 5} more</li>
+                  )}
+                </ul>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleApprove}
+                    className="flex-1 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded transition-colors"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    onClick={handleReject}
+                    className="flex-1 py-2 bg-red-900/50 hover:bg-red-900 text-red-300 text-xs font-bold rounded transition-colors"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            )}
+
             {isAiLoading && (
               <div className="flex justify-start">
                 <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
@@ -105,8 +186,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleChatSubmit()}
-                placeholder="Ask about your robot..."
-                className="w-full bg-gray-950 border border-gray-700 rounded-full py-2 pl-4 pr-10 text-sm text-white focus:border-blue-500 focus:outline-none"
+                placeholder={
+                  agentMode === "auto"
+                    ? "Command RoboBuddy..."
+                    : "Ask RoboBuddy..."
+                }
+                className={`w-full bg-gray-950 border ${agentMode === "auto" ? "border-blue-500/50" : "border-gray-700"} rounded-full py-2 pl-4 pr-10 text-sm text-white focus:border-blue-500 focus:outline-none transition-colors`}
               />
               <button
                 onClick={() =>
