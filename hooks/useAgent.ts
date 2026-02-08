@@ -84,6 +84,7 @@ export const useAgent = ({
 
     const newComponents = [...components];
     const newConnections = [...connections];
+    const tempIdMap: Record<string, string> = {}; // Map tempId -> realUid
     let lastAddedUid = "";
 
     for (const op of actions) {
@@ -101,12 +102,21 @@ export const useAgent = ({
                 ? INITIAL_CODE
                 : undefined,
           });
+          
+          if (op.tempId) {
+             tempIdMap[op.tempId] = lastAddedUid;
+          }
         }
       } else if (op.type === "CONNECT") {
-        const fromUid =
-          op.from?.compUid === "LAST_ADDED" ? lastAddedUid : op.from?.compUid;
-        const toUid =
-          op.to?.compUid === "LAST_ADDED" ? lastAddedUid : op.to?.compUid;
+        const resolveUid = (ref?: { compUid?: string; tempId?: string }) => {
+            if (!ref) return undefined;
+            if (ref.tempId && tempIdMap[ref.tempId]) return tempIdMap[ref.tempId];
+            if (ref.compUid === "LAST_ADDED") return lastAddedUid;
+            return ref.compUid;
+        };
+
+        const fromUid = resolveUid(op.from);
+        const toUid = resolveUid(op.to);
 
         if (fromUid && toUid && op.from?.pinId && op.to?.pinId) {
           newConnections.push({
@@ -118,8 +128,12 @@ export const useAgent = ({
           });
         }
       } else if (op.type === "UPDATE_CODE") {
-        const targetUid =
-          op.targetCompUid === "LAST_ADDED" ? lastAddedUid : op.targetCompUid;
+        let targetUid = op.targetCompUid;
+        if (op.targetTempId && tempIdMap[op.targetTempId]) {
+            targetUid = tempIdMap[op.targetTempId];
+        } else if (targetUid === "LAST_ADDED") {
+            targetUid = lastAddedUid;
+        }
         const targetMcu = newComponents.find((c) => c.uid === targetUid);
         if (targetMcu && op.code) {
           targetMcu.code = op.code;

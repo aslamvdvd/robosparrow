@@ -88,14 +88,16 @@ export interface AgentAction {
   type: AgentActionType;
   // Specific fields for different actions
   componentId?: string; // For ADD_COMPONENT
+  tempId?: string; // For ADD_COMPONENT (to reference in same block)
   x?: number;
   y?: number;
-  uid?: string; // For DELETE_COMPONENT
+  uid?: string; // For DELETE_COMPONENT or targeting existing
   id?: string; // For DELETE_CONNECTION
-  from?: { compUid: string; pinId: string }; // For CONNECT
-  to?: { compUid: string; pinId: string }; // For CONNECT
+  from?: { compUid?: string; tempId?: string; pinId: string }; // For CONNECT
+  to?: { compUid?: string; tempId?: string; pinId: string }; // For CONNECT
   color?: string; // For CONNECT
-  targetCompUid?: string; // For UPDATE_CODE
+  targetCompUid?: string; // For UPDATE_CODE (existing)
+  targetTempId?: string; // For UPDATE_CODE (new)
   code?: string; // For UPDATE_CODE
   panel?: 'editor' | 'library' | 'chat'; // For OPEN_PANEL
 }

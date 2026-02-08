@@ -81,22 +81,20 @@ export const generateCodeHelp = async (
       {
         "action": "UPDATE_CIRCUIT", 
         "operations": [
-          { "type": "ADD_COMPONENT", "componentId": "led-red", "x": 300, "y": 300 },
-          { "type": "CONNECT", "from": { "compUid": "arduino-1", "pinId": "D13" }, "to": { "compUid": "LAST_ADDED", "pinId": "POS" }, "color": "red" },
-          { "type": "UPDATE_CODE", "targetCompUid": "arduino-1", "code": "// New code here..." },
+          { "type": "ADD_COMPONENT", "componentId": "led-red", "x": 300, "y": 300, "tempId": "my-led" },
+          { "type": "ADD_COMPONENT", "componentId": "arduino-uno", "x": 100, "y": 300, "tempId": "my-arduino" },
+          { "type": "CONNECT", "from": { "tempId": "my-arduino", "pinId": "D13" }, "to": { "tempId": "my-led", "pinId": "POS" }, "color": "red" },
+          { "type": "UPDATE_CODE", "targetTempId": "my-arduino", "code": "// New code here..." },
           { "type": "OPEN_PANEL", "panel": "editor" },
-          { "type": "DELETE_COMPONENT", "uid": "component-uid-to-delete" },
-          { "type": "DELETE_CONNECTION", "id": "connection-id-to-delete" },
-          { "type": "START_SIMULATION" },
-          { "type": "STOP_SIMULATION" },
-          { "type": "CLEAR_CONSOLE" }
+          { "type": "DELETE_COMPONENT", "uid": "existing-uid" },
         ]
       }
       \`\`\`
       
       CRITICAL RULES:
       - **IDs**: Use valid IDs from the Library.
-      - **Code Injection**: When writing code for a Microcontroller, ALWAYS include the \`UPDATE_CODE\` action targeting that MCU's UID.
+      - **Temp IDs**: When adding components, assign a unique \`tempId\`. Use this \`tempId\` in \`CONNECT\` and \`UPDATE_CODE\` to reference them in the same block.
+      - **Code Injection**: When writing code for a Microcontroller, ALWAYS include the \`UPDATE_CODE\` action targeting its \`tempId\` (if new) or \`uid\` (if existing).
       - **Open Editor**: If you update code, ALWAYS include \`{ "type": "OPEN_PANEL", "panel": "editor" }\` so the user sees it.
       - **Multiple MCUs**:
         - If \`agentMode\` is **AUTO**: Automatically select the most relevant Microcontroller for the code. Do not ask.
