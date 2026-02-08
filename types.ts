@@ -3,7 +3,8 @@ export enum ComponentType {
   ACTUATOR = 'ACTUATOR',
   SENSOR = 'SENSOR',
   POWER = 'POWER',
-  BOARD = 'BOARD'
+  BOARD = 'BOARD',
+  LED = 'LED'
 }
 
 export interface Pin {

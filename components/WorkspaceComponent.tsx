@@ -58,10 +58,16 @@ const WorkspaceComponent: React.FC<Props> = ({
   }, [isDragging]);
 
   // Determine Visual Style based on type
+  // Determine Visual Style based on type
   const isArduino = component.id === "arduino-uno";
+  const isEsp32 = component.id === "esp32-dev-v1";
+  const isPico = component.id === "pico-w";
+  const isLED = component.type === "LED";
 
   const getBodyStyle = () => {
     if (isArduino) return "bg-transparent border-none"; // SVG handles visual
+    if (isLED) return "bg-transparent border-none";
+
     switch (component.type) {
       case "MICROCONTROLLER":
         return "bg-teal-900 border-teal-600 border-2";
@@ -69,6 +75,11 @@ const WorkspaceComponent: React.FC<Props> = ({
         return "bg-yellow-900 border-yellow-600 border-2";
       case "ACTUATOR":
         return "bg-orange-900 border-orange-600 border-2";
+      case "LED":
+        return "bg-transparent border-none";
+      case "BOARD":
+        return "bg-white/90 border-gray-300 border-2 shadow-inner";
+
       default:
         return "bg-gray-800 border-gray-600 border-2";
     }
@@ -92,6 +103,13 @@ const WorkspaceComponent: React.FC<Props> = ({
         <ArduinoVisual
           width={component.width}
           height={component.height}
+          isSelected={isSelected}
+        />
+      ) : isLED ? (
+        <LEDVisual
+          width={component.width}
+          height={component.height}
+          color={component.properties?.color || "#ef4444"}
           isSelected={isSelected}
         />
       ) : (
@@ -466,3 +484,33 @@ const ArduinoVisual: React.FC<{
 };
 
 export default WorkspaceComponent;
+
+const LEDVisual: React.FC<{
+  width: number;
+  height: number;
+  color: string;
+  isSelected: boolean;
+}> = ({ width, height, color, isSelected }) => {
+  return (
+    <div
+      className={`w-full h-full relative flex items-center justify-center ${isSelected ? "drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" : ""}`}
+    >
+      {/* Bulb Body */}
+      <div
+        className="rounded-t-full rounded-b-md shadow-inner transition-colors duration-200"
+        style={{
+          width: width * 0.6,
+          height: height * 0.7,
+          backgroundColor: color,
+          boxShadow: `inset -2px -2px 6px rgba(0,0,0,0.3), inset 2px 2px 6px rgba(255,255,255,0.4), 0 0 10px ${color}80`,
+          borderBottom: "4px solid rgba(0,0,0,0.2)",
+        }}
+      />
+      {/* Legs (Visual only, pins are overlaid) */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex gap-1 transform translate-y-1">
+        <div className="w-1 h-3 bg-gray-400 -translate-x-1"></div>
+        <div className="w-1 h-3 bg-gray-400 translate-x-1"></div>
+      </div>
+    </div>
+  );
+};
