@@ -14,11 +14,7 @@ import SettingsPanel from "./SettingsPanel";
 import ChatPanel from "./ChatPanel";
 import Minimap from "./Minimap";
 import WorkspaceComponent from "./WorkspaceComponent";
-// import { GEMINI_MODELS } from "../services/geminiService";
 
-// // Types for simulation loop
-// type LoopFunction = () => void;
-// type SetupFunction = () => void;
 
 function Studio() {
   // --- State ---

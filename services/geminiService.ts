@@ -13,6 +13,41 @@ export type GeminiModelId = typeof GEMINI_MODELS[number]['id'];
 const createAIClient = (apiKey: string) => {
   return new GoogleGenAI({ apiKey });
 };
+
+export const getGeminiApiKey = (): string | null => {
+  // 1. Check Local Storage (User Override)
+  const localKey = localStorage.getItem("robo-sparrow-api-key");
+  if (localKey && localKey.trim().length > 0) {
+    console.log("[GeminiService] Using API Key from LocalStorage");
+    return localKey;
+  }
+  
+  // 2. Check Vite Env Var (Standard way)
+  // @ts-ignore
+  if (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
+     // @ts-ignore
+     const rawVal = import.meta.env.VITE_GEMINI_API_KEY;
+     // Remove any surrounding quotes that might have been picked up from .env
+     const cleanVal = rawVal.replace(/^"|"$/g, '').trim();
+          
+     return cleanVal;
+  }
+
+  // 3. Fallback to old custom define (Legacy support support)
+  try {
+    // @ts-ignore
+    const envKey = process.env.GEMINI_API_KEY;
+    if (envKey) {
+        console.log("[GeminiService] Using API Key from process.env");
+        return envKey;
+    }
+  } catch (e) {
+    // Ignore
+  }
+  
+  console.warn("[GeminiService] No API Key found in LocalStorage or Env!");
+  return null;
+};
 const getLibraryContext = (): string => {
   return COMPONENT_LIBRARY.map(c => 
     `- ID: "${c.id}" (${c.name}): ${c.description}. Pins: ${c.pins.map(p => p.id).join(', ')}`

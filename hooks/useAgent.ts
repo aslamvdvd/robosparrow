@@ -4,6 +4,7 @@ import {
   analyzeCircuit,
   GEMINI_MODELS,
   GeminiModelId,
+  getGeminiApiKey,
 } from "../services/geminiService";
 import { PlacedComponent, Connection, LogType, ComponentType, AgentAction } from "../types";
 import { COMPONENT_LIBRARY, INITIAL_CODE } from "../constants";
@@ -63,6 +64,14 @@ export const useAgent = ({
 
   // Load API key and model from localStorage on mount
   useEffect(() => {
+    // We don't need to manually load from localStorage here because
+    // the UI components or services will use getGeminiApiKey() directly
+    // EXCEPT that we want to populate the Settings input if it's in localStorage.
+    
+    // However, for the agent itself, we should trust the service to get the right key.
+    // BUT useAgent holds `apiKey` state which is passed to generateCodeHelp.
+    // So we should initialize it.
+    
     const savedKey = localStorage.getItem("robo-sparrow-api-key");
     if (savedKey) {
       setApiKey(savedKey);
@@ -215,10 +224,13 @@ export const useAgent = ({
     }
     setIsAiLoading(true);
 
-    // Pass full state to AI
+        // Pass full state to AI
     try {
+      // Use the helper to get the effective key (env or local)
+      const effectiveKey = getGeminiApiKey();
+      
       const response = await generateCodeHelp(
-        apiKey,
+        effectiveKey || apiKey, // Fallback to state if helper returns null (unlikely if env is set)
         selectedModel,
         msg,
         code,

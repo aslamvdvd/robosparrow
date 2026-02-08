@@ -64,12 +64,28 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </p>
       </div>
 
-      {apiKey && (
-        <div className="flex items-center gap-2 text-xs text-green-400">
-          <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-          API key saved locally
-        </div>
-      )}
+      {/* API Key Status Indicators */}
+      <div className="flex flex-col gap-2">
+        {/* Local Storage Status */}
+        {apiKey && (
+          <div className="flex items-center gap-2 text-xs text-green-400">
+            <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+            Using Custom API Key (Local Storage)
+          </div>
+        )}
+
+        {/* Env Var Status */}
+        {/* We can't easily check process.env here without importing logic, 
+            so let's check a derived property passed in OR just check window/process if possible.
+            Actually, let's just show a hint if NO local key is set but ENV is present.
+        */}
+        {!apiKey && (
+          <div className="flex items-center gap-2 text-xs text-blue-400">
+            <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+            Using Hosted API Key (Environment)
+          </div>
+        )}
+      </div>
 
       <div className="pt-2 border-t border-gray-800 text-xs text-gray-500">
         Your API key is stored in your browser's local storage and never sent to

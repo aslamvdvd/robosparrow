@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { SimulationState, ConsoleLog, LogType, ComponentType } from "../types";
+import { getGeminiApiKey } from "../services/geminiService";
 
 // Types for simulation loop
 type LoopFunction = () => void;
@@ -286,7 +287,10 @@ export const useSimulation = ({ code, components, connections }: UseSimulationPr
          // FALLBACK: AI Transpilation
          logToConsole(`Standard compilation failed (${err.message}). Trying AI Compiler...`, "system");
          
-         const apiKey = localStorage.getItem("robo-sparrow-api-key");
+         // FALLBACK: AI Transpilation
+         logToConsole(`Standard compilation failed (${err.message}). Trying AI Compiler...`, "system");
+         
+         const apiKey = getGeminiApiKey();
          if (!apiKey) {
             logToConsole("Compilation failed and no API Key for AI fallback.", "error");
             return;
