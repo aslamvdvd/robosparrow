@@ -56,6 +56,18 @@ function Studio() {
   // Multi-MCU State
   const [activeMcuUid, setActiveMcuUid] = useState<string | null>(null);
 
+  // Automatically select first MCU if none selected
+  useEffect(() => {
+    if (!activeMcuUid && components.length > 0) {
+      const firstMcu = components.find(
+        (c) => c.type === ComponentType.MICROCONTROLLER,
+      );
+      if (firstMcu) {
+        setActiveMcuUid(firstMcu.uid);
+      }
+    }
+  }, [components, activeMcuUid]);
+
   // Update code when active MCU changes
   useEffect(() => {
     if (activeMcuUid) {
@@ -64,7 +76,8 @@ function Studio() {
         setCode(mcu.code);
       }
     }
-  }, [activeMcuUid, components]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMcuUid]);
 
   // Save code to active MCU
   const handleCodeChange = (newCode: string) => {
@@ -75,6 +88,14 @@ function Studio() {
       );
     }
   };
+
+  // Ensure active MCU exists
+  useEffect(() => {
+    if (activeMcuUid && !components.find((c) => c.uid === activeMcuUid)) {
+      setActiveMcuUid(null);
+      setCode("");
+    }
+  }, [components, activeMcuUid]);
 
   // Wiring State
   const [selectedPin, setSelectedPin] = useState<{
