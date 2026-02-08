@@ -13,7 +13,10 @@ const GA_MEASUREMENT_ID = rawGaId
   ? rawGaId.replace(/^"|"$/g, "").trim()
   : undefined;
 
-if (GA_MEASUREMENT_ID) {
+// Only initialize Analytics in Production to prevent dev data pollution
+const IS_PROD = import.meta.env.PROD;
+
+if (GA_MEASUREMENT_ID && IS_PROD) {
   ReactGA.initialize(GA_MEASUREMENT_ID);
   // Send initial pageview
   ReactGA.send({ hitType: "pageview", page: window.location.pathname });
