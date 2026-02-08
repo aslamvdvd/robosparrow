@@ -271,7 +271,8 @@ const Landing: React.FC<Props> = ({ onStart }) => {
       <footer className="border-t border-gray-800 bg-gray-900/80 py-8">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center gap-2"><Terminal className="w-5 h-5" /> <span>Robo Sparrow</span></div>
-          <div>© 2026 Robo Sparrow Simulation Systems</div>
+          <div className="flex items-center gap-2 text-white">Built with ❤️ for the builders of tomorrow</div> 
+          <div className="flex items-center gap-2 text-white">© 2026 Robo Sparrow Simulation Systems</div>
         </div>
       </footer>
     </div>
