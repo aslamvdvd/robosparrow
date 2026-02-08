@@ -308,26 +308,43 @@ export const COMPONENT_LIBRARY: ComponentData[] = [
     ],
   },
   {
-    id: "breadboard-mini",
+    id: "breadboard-full",
     type: ComponentType.BOARD,
-    name: "Mini Breadboard",
-    description: "170 Tie-points solderless breadboard.",
-    width: 140,
-    height: 100,
+    name: "Breadboard MB-102",
+    description: "Standard 830-point solderless breadboard.",
+    width: 600,
+    height: 220,
     pins: [
-      // Top Rail
-      { id: "T1", name: "1", type: "digital", x: 20, y: 10 },
-      { id: "T2", name: "2", type: "digital", x: 35, y: 10 },
-      { id: "T3", name: "3", type: "digital", x: 50, y: 10 },
-      { id: "T4", name: "4", type: "digital", x: 65, y: 10 },
-      { id: "T5", name: "5", type: "digital", x: 80, y: 10 },
+      // Top Power Rails
+      ...Array.from({ length: 50 }, (_, i) => ({ id: `TP-${i + 1}`, name: "+", type: "power" as const, x: 20 + i * 11.2, y: 15 })),
+      ...Array.from({ length: 50 }, (_, i) => ({ id: `TN-${i + 1}`, name: "-", type: "ground" as const, x: 20 + i * 11.2, y: 30 })),
 
-      // Bottom Rail
-      { id: "B1", name: "1", type: "digital", x: 20, y: 90 },
-      { id: "B2", name: "2", type: "digital", x: 35, y: 90 },
-      { id: "B3", name: "3", type: "digital", x: 50, y: 90 },
-      { id: "B4", name: "4", type: "digital", x: 65, y: 90 },
-      { id: "B5", name: "5", type: "digital", x: 80, y: 90 },
+      // Main Grid - Top (A-E)
+      // Columns 1-63. x spacing ~9px.
+      ...Array.from({ length: 63 }, (_, col) => 
+        ["A", "B", "C", "D", "E"].map((row, rIdx) => ({
+          id: `${row}-${col + 1}`,
+          name: `${row}${col + 1}`,
+          type: "digital" as const, // Or passive
+          x: 18 + col * 9.15,
+          y: 60 + rIdx * 9.15
+        }))
+      ).flat(),
+
+      // Main Grid - Bottom (F-J)
+      ...Array.from({ length: 63 }, (_, col) => 
+        ["F", "G", "H", "I", "J"].map((row, rIdx) => ({
+          id: `${row}-${col + 1}`,
+          name: `${row}${col + 1}`,
+          type: "digital" as const,
+          x: 18 + col * 9.15,
+          y: 125 + rIdx * 9.15
+        }))
+      ).flat(),
+
+      // Bottom Power Rails
+      ...Array.from({ length: 50 }, (_, i) => ({ id: `BP-${i + 1}`, name: "+", type: "power" as const, x: 20 + i * 11.2, y: 185 })),
+      ...Array.from({ length: 50 }, (_, i) => ({ id: `BN-${i + 1}`, name: "-", type: "ground" as const, x: 20 + i * 11.2, y: 200 })),
     ],
   },
 ];
