@@ -49,9 +49,9 @@ type SetupFunction = () => void;
 
 function Studio() {
   // --- State ---
-  const [activeTab, setActiveTab] = useState<"editor" | "library" | "chat">(
-    "chat",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "editor" | "library" | "chat" | null
+  >("chat");
   const [components, setComponents] = useState<PlacedComponent[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [code, setCode] = useState<string>(INITIAL_CODE);
@@ -693,25 +693,20 @@ function Studio() {
         </div>
 
         <button
-          onClick={() => setActiveTab("library")}
+          onClick={() =>
+            setActiveTab(activeTab === "library" ? null : "library")
+          }
           className={`p-3 rounded-xl transition-all ${activeTab === "library" ? "bg-gray-800 text-blue-400" : "text-gray-500 hover:text-gray-300"}`}
           title="Component Library"
         >
           <HardDriveIcon />
         </button>
         <button
-          onClick={() => setActiveTab("editor")}
+          onClick={() => setActiveTab(activeTab === "editor" ? null : "editor")}
           className={`p-3 rounded-xl transition-all ${activeTab === "editor" ? "bg-gray-800 text-blue-400" : "text-gray-500 hover:text-gray-300"}`}
           title="Code Editor"
         >
           <Code2 />
-        </button>
-        <button
-          onClick={() => setActiveTab("chat")}
-          className={`p-3 rounded-xl transition-all ${activeTab === "chat" ? "bg-gray-800 text-blue-400" : "text-gray-500 hover:text-gray-300"}`}
-          title="AI Assistant"
-        >
-          <MessageSquare />
         </button>
 
         <div className="flex-grow" />
