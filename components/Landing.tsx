@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Terminal, ArrowRight, Cpu, Code2, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-interface Props {
-  onStart: () => void;
-}
+interface Props {}
 
-const Landing: React.FC<Props> = ({ onStart }) => {
+const Landing: React.FC<Props> = () => {
+  const navigate = useNavigate();
+  const onStart = () => navigate("/studio");
   const parallaxRef = useRef<HTMLDivElement | null>(null);
   const bigTitleRef = useRef<HTMLDivElement | null>(null);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
@@ -72,7 +73,6 @@ const Landing: React.FC<Props> = ({ onStart }) => {
       <div className="pointer-events-none absolute -top-32 left-1/4 w-[1000px] h-[700px] rounded-full bg-blue-600/8 blur-[140px] animate-floatSlow -z-20" />
       <div className="pointer-events-none absolute right-0 top-12 w-[520px] h-[520px] rounded-full bg-blue-500/6 blur-[160px] -z-30" />
 
-      
       {/* MASSIVE TITLE HERO */}
       <header className="relative min-h-[88vh] flex items-center">
         {/* Huge background title (stage) */}
@@ -85,19 +85,39 @@ const Landing: React.FC<Props> = ({ onStart }) => {
             <div className="text-[12vw] md:text-[9vw] lg:text-[8.8vw] leading-none font-extrabold uppercase tracking-tight text-transparent bg-clip-text glow-sweep">
               {/* layered duplicates for depth + glitch */}
               <div className="relative">
-                <span className="block absolute inset-0 translate-x-3 translate-y-2 opacity-30 blur-sm" style={{ WebkitTextStroke: "0.5px rgba(255,255,255,0.02)" }}>
+                <span
+                  className="block absolute inset-0 translate-x-3 translate-y-2 opacity-30 blur-sm"
+                  style={{ WebkitTextStroke: "0.5px rgba(255,255,255,0.02)" }}
+                >
                   ROBO SPARROW
                 </span>
 
-                <span className="block relative z-10 title-noise" style={{ fontFeatureSettings: "'kern' 1" }}>
+                <span
+                  className="block relative z-10 title-noise"
+                  style={{ fontFeatureSettings: "'kern' 1" }}
+                >
                   ROBO SPARROW
                 </span>
 
                 {/* magenta/blue subtle color offsets for glitch feel */}
-                <span className="block absolute inset-0 z-0" style={{ color: "rgba(59,130,246,0.06)", mixBlendMode: "screen", transform: "translateX(-6px) translateY(-2px)" }}>
+                <span
+                  className="block absolute inset-0 z-0"
+                  style={{
+                    color: "rgba(59,130,246,0.06)",
+                    mixBlendMode: "screen",
+                    transform: "translateX(-6px) translateY(-2px)",
+                  }}
+                >
                   ROBO SPARROW
                 </span>
-                <span className="block absolute inset-0 z-0" style={{ color: "rgba(99,102,241,0.04)", mixBlendMode: "screen", transform: "translateX(6px) translateY(2px)" }}>
+                <span
+                  className="block absolute inset-0 z-0"
+                  style={{
+                    color: "rgba(99,102,241,0.04)",
+                    mixBlendMode: "screen",
+                    transform: "translateX(6px) translateY(2px)",
+                  }}
+                >
                   ROBO SPARROW
                 </span>
               </div>
@@ -110,16 +130,21 @@ const Landing: React.FC<Props> = ({ onStart }) => {
           <div className="grid lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7 space-y-6">
               <h2 className="text-4xl md:text-5xl font-extrabold leading-tight tracking-tight">
-                <span className="block text-blue-500 mt-2 text-5xl md:text-8xl">Robo Sparrow</span>
+                <span className="block text-blue-500 mt-2 text-5xl md:text-8xl">
+                  Robo Sparrow
+                </span>
                 <br />
                 <span className="block">A living robotics lab</span>
-                <span className="block text-blue-500 mt-2 text-5xl md:text-4xl">No hardware. All reality.</span>
+                <span className="block text-blue-500 mt-2 text-5xl md:text-4xl">
+                  No hardware. All reality.
+                </span>
               </h2>
 
               <p className="text-gray-300 max-w-2xl">
-                Play with signal-accurate circuits, run firmware on virtual MCUs,
-                and debug with an AI co-pilot — all inside the browser. The platform
-                behaves like the messy, honest bench you actually learn from.
+                Play with signal-accurate circuits, run firmware on virtual
+                MCUs, and debug with an AI co-pilot — all inside the browser.
+                The platform behaves like the messy, honest bench you actually
+                learn from.
               </p>
 
               <div className="flex flex-wrap gap-4 mt-4">
@@ -144,16 +169,23 @@ const Landing: React.FC<Props> = ({ onStart }) => {
                   Live Console
                 </div>
                 <div className="relative h-28 bg-gradient-to-b from-gray-950/40 to-transparent overflow-hidden">
-                  <div style={{ animation: "marquee 18s linear infinite" } as React.CSSProperties} className="absolute left-0 top-0 w-[200%] will-change-transform">
+                  <div
+                    style={
+                      {
+                        animation: "marquee 18s linear infinite",
+                      } as React.CSSProperties
+                    }
+                    className="absolute left-0 top-0 w-[200%] will-change-transform"
+                  >
                     <pre className="text-[13px] text-gray-300 px-4 py-3 whitespace-pre">
-{`[00:01:31] booting physics engine...
+                      {`[00:01:31] booting physics engine...
 [00:01:33] device /arduino/uno enumerated
 [00:01:34] pwm(13) -> motor-driver #2
 [00:01:36] ai: suggestion -> increase pwm slew rate
 [00:01:40] compile: success (firmware.bin)`}
                     </pre>
                     <pre className="text-[13px] text-gray-300 px-4 py-3 whitespace-pre opacity-60">
-{`[00:01:31] booting physics engine...
+                      {`[00:01:31] booting physics engine...
 [00:01:33] device /arduino/uno enumerated
 [00:01:34] pwm(13) -> motor-driver #2
 [00:01:36] ai: suggestion -> increase pwm slew rate
@@ -183,30 +215,69 @@ const Landing: React.FC<Props> = ({ onStart }) => {
 
                 <div className="relative aspect-[16/10] rounded-xl overflow-hidden border border-gray-800 bg-gradient-to-br from-gray-950/60 to-gray-900/30">
                   {/* particle network SVG */}
-                  <svg className="absolute inset-0 w-full h-full" viewBox="0 0 600 400" preserveAspectRatio="none" aria-hidden>
+                  <svg
+                    className="absolute inset-0 w-full h-full"
+                    viewBox="0 0 600 400"
+                    preserveAspectRatio="none"
+                    aria-hidden
+                  >
                     <defs>
                       <linearGradient id="pgrad" x1="0" x2="1">
-                        <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.95" />
-                        <stop offset="100%" stopColor="#a78bfa" stopOpacity="0.45" />
+                        <stop
+                          offset="0%"
+                          stopColor="#60a5fa"
+                          stopOpacity="0.95"
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#a78bfa"
+                          stopOpacity="0.45"
+                        />
                       </linearGradient>
                     </defs>
 
                     {/* generate a network of moving circles/lines */}
                     {Array.from({ length: 12 }).map((_, idx) => {
-                      const cx = 40 + (idx * 43) % 560;
+                      const cx = 40 + ((idx * 43) % 560);
                       const cy = 30 + ((idx * 77) % 340);
                       const r = 3 + (idx % 4);
                       const delay = (idx % 5) * 0.3;
                       return (
-                        <g key={idx} style={{ transformOrigin: "center", animation: `particleMove 6s ${delay}s ease-in-out infinite` }}>
-                          <circle cx={cx} cy={cy} r={r} fill="url(#pgrad)" opacity={0.85} />
+                        <g
+                          key={idx}
+                          style={{
+                            transformOrigin: "center",
+                            animation: `particleMove 6s ${delay}s ease-in-out infinite`,
+                          }}
+                        >
+                          <circle
+                            cx={cx}
+                            cy={cy}
+                            r={r}
+                            fill="url(#pgrad)"
+                            opacity={0.85}
+                          />
                         </g>
                       );
                     })}
 
                     {/* a few animated bezier paths to feel wired */}
-                    <path d="M 80 120 C 160 20, 260 260, 340 150" stroke="url(#pgrad)" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.8" />
-                    <path d="M 120 300 C 240 220, 360 320, 480 220" stroke="url(#pgrad)" strokeWidth="1.4" fill="none" strokeLinecap="round" opacity="0.45" />
+                    <path
+                      d="M 80 120 C 160 20, 260 260, 340 150"
+                      stroke="url(#pgrad)"
+                      strokeWidth="1.8"
+                      fill="none"
+                      strokeLinecap="round"
+                      opacity="0.8"
+                    />
+                    <path
+                      d="M 120 300 C 240 220, 360 320, 480 220"
+                      stroke="url(#pgrad)"
+                      strokeWidth="1.4"
+                      fill="none"
+                      strokeLinecap="round"
+                      opacity="0.45"
+                    />
                   </svg>
 
                   {/* floating module blocks */}
@@ -234,15 +305,21 @@ const Landing: React.FC<Props> = ({ onStart }) => {
                         AI Assist
                       </div>
                     </div>
-                    <div className="text-[11px] text-gray-500">runtime 1.2ms</div>
+                    <div className="text-[11px] text-gray-500">
+                      runtime 1.2ms
+                    </div>
                   </div>
                 </div>
 
                 {/* CTA toolbar */}
                 <div className="mt-4 flex items-center justify-between px-1">
                   <div className="text-xs text-gray-400 flex items-center gap-3">
-                    <div className="px-2 py-1 rounded-full border border-gray-800 bg-gray-900/60">Virtual Lab</div>
-                    <div className="px-2 py-1 rounded-full border border-gray-800 bg-gray-900/60">MCU Runtime</div>
+                    <div className="px-2 py-1 rounded-full border border-gray-800 bg-gray-900/60">
+                      Virtual Lab
+                    </div>
+                    <div className="px-2 py-1 rounded-full border border-gray-800 bg-gray-900/60">
+                      MCU Runtime
+                    </div>
                   </div>
                   <button
                     onClick={onStart}
@@ -270,9 +347,15 @@ const Landing: React.FC<Props> = ({ onStart }) => {
       {/* Footer */}
       <footer className="border-t border-gray-800 bg-gray-900/80 py-8">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-sm text-gray-500">
-          <div className="flex items-center gap-2"><Terminal className="w-5 h-5" /> <span>Robo Sparrow</span></div>
-          <div className="flex items-center gap-2 text-white">Built with ❤️ for the builders of tomorrow</div> 
-          <div className="flex items-center gap-2 text-white">© 2026 Robo Sparrow Simulation Systems</div>
+          <div className="flex items-center gap-2">
+            <Terminal className="w-5 h-5" /> <span>Robo Sparrow</span>
+          </div>
+          <div className="flex items-center gap-2 text-white">
+            Built with ❤️ for the builders of tomorrow
+          </div>
+          <div className="flex items-center gap-2 text-white">
+            © 2026 Robo Sparrow Simulation Systems
+          </div>
         </div>
       </footer>
     </div>
