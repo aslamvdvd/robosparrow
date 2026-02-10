@@ -13,8 +13,8 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #F5F5F0; /* Warm Neutral Background */
-            color: #1F2937;
+            background-color: #030712; /* Gray 950 */
+            color: #F3F4F6; /* Gray 100 */
         }
 
         /* Chart Container Styling - MANDATORY */
@@ -36,29 +36,34 @@
         .interactive-card {
             transition: all 0.3s ease;
             cursor: pointer;
+            background-color: rgba(17, 24, 39, 0.6); /* Gray 900/60 */
+            border: 1px solid #1F2937; /* Gray 800 */
         }
         .interactive-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 25px -5px rgba(56, 189, 248, 0.1); /* Sky glow */
+            border-color: #374151; /* Gray 700 */
+            background-color: rgba(17, 24, 39, 0.9);
         }
         .interactive-card.active {
             border-color: #0EA5E9; /* Sky 500 */
-            background-color: #F0F9FF; /* Sky 50 */
+            background-color: rgba(14, 165, 233, 0.1); /* Sky 500/10 */
         }
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
+            background: #030712;
         }
         ::-webkit-scrollbar-track {
-            background: #E5E5E5; 
+            background: #030712; 
         }
         ::-webkit-scrollbar-thumb {
-            background: #9CA3AF; 
+            background: #374151; 
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #6B7280; 
+            background: #4B5563; 
         }
     </style>
     <!-- Chosen Palette: Warm Neutrals & Tech Accents -->
@@ -92,22 +97,22 @@
 <body class="antialiased">
 
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50">
+    <nav class="bg-gray-950/80 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
                     <span class="text-2xl mr-2">🦜</span>
-                    <span class="font-extrabold text-xl tracking-tight text-gray-900">Robo <span class="text-sky-500">Sparrow</span></span>
+                    <span class="font-extrabold text-xl tracking-tight text-white">Robo <span class="text-sky-500">Sparrow</span></span>
                 </a>
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="/" class="text-gray-500 hover:text-sky-600 font-medium transition flex items-center gap-2">
+                    <a href="/" class="text-gray-400 hover:text-sky-400 font-medium transition flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                         Home
                     </a>
-                    <button onclick="scrollToSection('opportunity')" class="text-gray-500 hover:text-sky-600 font-medium transition">The Opportunity</button>
-                    <button onclick="scrollToSection('flywheel')" class="text-gray-500 hover:text-sky-600 font-medium transition">The Flywheel</button>
-                    <button onclick="scrollToSection('financials')" class="text-gray-500 hover:text-sky-600 font-medium transition">Financials</button>
-                    <button onclick="window.location.href='/studio'" class="bg-sky-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-sky-600 transition shadow-md">Run Simulation</button>
+                    <button onclick="scrollToSection('opportunity')" class="text-gray-400 hover:text-sky-400 font-medium transition">The Opportunity</button>
+                    <button onclick="scrollToSection('flywheel')" class="text-gray-400 hover:text-sky-400 font-medium transition">The Flywheel</button>
+                    <button onclick="scrollToSection('financials')" class="text-gray-400 hover:text-sky-400 font-medium transition">Financials</button>
+                    <button onclick="window.location.href='/studio'" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-500 transition shadow-lg shadow-blue-500/20">Run Simulation</button>
                 </div>
             </div>
         </div>
@@ -117,20 +122,20 @@
     <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
-                <div class="inline-block bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full mb-4">Strategic Overview</div>
-                <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
-                    Hardware Innovation with <span class="text-sky-500">Zero Risk</span>.
+                <div class="inline-block bg-amber-500/10 text-amber-400 text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full mb-4 border border-amber-500/20">Strategic Overview</div>
+                <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-6">
+                    Hardware Innovation with <span class="text-sky-400">Zero Risk</span>.
                 </h1>
-                <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+                <p class="text-lg text-gray-400 mb-8 leading-relaxed">
                     We are building the "Github for Hardware." Robo Sparrow solves the "Hair on Fire" problem of expensive barriers to entry in robotics by combining simulation, AI education, and a marketplace into a single platform.
                 </p>
                 
                 <!-- Interactive Friction Toggle -->
-                <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-                    <h3 class="font-bold text-gray-800 mb-4">Compare The Workflow:</h3>
+                <div class="bg-gray-900/50 p-6 rounded-2xl shadow-xl border border-gray-800">
+                    <h3 class="font-bold text-gray-200 mb-4">Compare The Workflow:</h3>
                     <div class="flex space-x-4 mb-4">
-                        <button id="btn-trad" onclick="updateFriction('traditional')" class="flex-1 py-2 px-4 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 font-semibold transition">Traditional Way</button>
-                        <button id="btn-robo" onclick="updateFriction('robo')" class="flex-1 py-2 px-4 rounded-lg bg-sky-500 text-white shadow-md font-semibold transition">The Robo Sparrow Way</button>
+                        <button id="btn-trad" onclick="updateFriction('traditional')" class="flex-1 py-2 px-4 rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 font-semibold transition">Traditional Way</button>
+                        <button id="btn-robo" onclick="updateFriction('robo')" class="flex-1 py-2 px-4 rounded-lg bg-sky-600 text-white shadow-lg font-semibold transition">The Robo Sparrow Way</button>
                     </div>
                     <div id="friction-content" class="min-h-[120px]">
                         <!-- Dynamic Content Loaded via JS -->
@@ -140,8 +145,8 @@
             
             <!-- Key Metric Visualization -->
             <div class="relative">
-                <div class="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
-                    <h3 class="text-xl font-bold text-gray-800 mb-6">Barriers to Entry Index</h3>
+                <div class="bg-gray-900/50 p-8 rounded-3xl shadow-2xl border border-gray-800 backdrop-blur-sm">
+                    <h3 class="text-xl font-bold text-white mb-6">Barriers to Entry Index</h3>
                     <div class="chart-container" style="height: 300px;">
                         <canvas id="frictionChart"></canvas>
                     </div>
@@ -150,17 +155,18 @@
                     </p>
                 </div>
                 <!-- Decorative Circle -->
-                <div class="absolute -z-10 top-10 -right-10 w-72 h-72 bg-sky-100 rounded-full blur-3xl opacity-50"></div>
+                <div class="absolute -z-10 top-10 -right-10 w-72 h-72 bg-blue-600/20 rounded-full blur-3xl"></div>
             </div>
         </div>
     </section>
 
     <!-- Section 2: Market Opportunity -->
-    <section id="opportunity" class="bg-white py-16 border-t border-gray-100">
+    <!-- Section 2: Market Opportunity -->
+    <section id="opportunity" class="bg-gray-950 py-16 border-t border-gray-900">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
-                <h2 class="text-3xl font-extrabold text-gray-900 mb-4">The Trillion-Dollar Intersection</h2>
-                <p class="text-gray-600">
+                <h2 class="text-3xl font-extrabold text-white mb-4">The Trillion-Dollar Intersection</h2>
+                <p class="text-gray-400">
                     We sit at the convergence of EdTech, IoT, and the Creator Economy. Explore the market layers below to understand our growth potential.
                 </p>
             </div>
@@ -168,26 +174,26 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Interactive Market Selector -->
                 <div class="col-span-1 space-y-4">
-                    <div onclick="updateMarketView('tam')" class="interactive-card active p-6 rounded-xl border border-gray-200 bg-sky-50" id="card-tam">
-                        <h4 class="text-lg font-bold text-gray-900">TAM (Total Addressable)</h4>
-                        <p class="text-sm text-gray-600 mt-1">Global EdTech + IoT Markets.</p>
-                        <div class="mt-2 text-2xl font-black text-sky-600">$1.6 Trillion</div>
+                    <div onclick="updateMarketView('tam')" class="interactive-card active p-6 rounded-xl border border-gray-800 bg-sky-900/20" id="card-tam">
+                        <h4 class="text-lg font-bold text-white">TAM (Total Addressable)</h4>
+                        <p class="text-sm text-gray-400 mt-1">Global EdTech + IoT Markets.</p>
+                        <div class="mt-2 text-2xl font-black text-sky-400">$1.6 Trillion</div>
                     </div>
-                    <div onclick="updateMarketView('sam')" class="interactive-card p-6 rounded-xl border border-gray-200 bg-white" id="card-sam">
-                        <h4 class="text-lg font-bold text-gray-900">SAM (Serviceable Available)</h4>
-                        <p class="text-sm text-gray-600 mt-1">Technical Edu & Prototyping Tools.</p>
-                        <div class="mt-2 text-2xl font-black text-emerald-600">$50 Billion</div>
+                    <div onclick="updateMarketView('sam')" class="interactive-card p-6 rounded-xl border border-gray-800 bg-gray-900/40" id="card-sam">
+                        <h4 class="text-lg font-bold text-white">SAM (Serviceable Available)</h4>
+                        <p class="text-sm text-gray-400 mt-1">Technical Edu & Prototyping Tools.</p>
+                        <div class="mt-2 text-2xl font-black text-emerald-400">$50 Billion</div>
                     </div>
-                    <div onclick="updateMarketView('som')" class="interactive-card p-6 rounded-xl border border-gray-200 bg-white" id="card-som">
-                        <h4 class="text-lg font-bold text-gray-900">SOM (Obtainable)</h4>
-                        <p class="text-sm text-gray-600 mt-1">Target: 5 Year Capture (0.5%).</p>
-                        <div class="mt-2 text-2xl font-black text-indigo-600">$250 Million</div>
+                    <div onclick="updateMarketView('som')" class="interactive-card p-6 rounded-xl border border-gray-800 bg-gray-900/40" id="card-som">
+                        <h4 class="text-lg font-bold text-white">SOM (Obtainable)</h4>
+                        <p class="text-sm text-gray-400 mt-1">Target: 5 Year Capture (0.5%).</p>
+                        <div class="mt-2 text-2xl font-black text-indigo-400">$250 Million</div>
                     </div>
                 </div>
 
                 <!-- Market Chart -->
-                <div class="col-span-1 lg:col-span-2 bg-gray-50 rounded-2xl p-6 border border-gray-100 flex flex-col justify-center">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4" id="market-chart-title">Market Size Visualization</h3>
+                <div class="col-span-1 lg:col-span-2 bg-gray-900/50 rounded-2xl p-6 border border-gray-800 flex flex-col justify-center">
+                    <h3 class="text-lg font-bold text-gray-200 mb-4" id="market-chart-title">Market Size Visualization</h3>
                     <div class="chart-container">
                         <canvas id="marketChart"></canvas>
                     </div>
@@ -200,40 +206,41 @@
     </section>
 
     <!-- Section 3: The Flywheel Business Model -->
-    <section id="flywheel" class="py-16 bg-[#F5F5F0]">
+    <!-- Section 3: The Flywheel Business Model -->
+    <section id="flywheel" class="py-16 bg-gray-950">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="mb-12">
-                <h2 class="text-3xl font-extrabold text-gray-900 mb-4">The "Flywheel" Engine</h2>
-                <p class="text-gray-600 max-w-2xl">
+                <h2 class="text-3xl font-extrabold text-white mb-4">The "Flywheel" Engine</h2>
+                <p class="text-gray-400 max-w-2xl">
                     Unlike standard e-commerce, our model creates a self-reinforcing loop. Click on each stage of the flywheel to understand how we capture value at every step.
                 </p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Flywheel Stage 1 -->
-                <div onclick="activateFlywheel(1)" id="fw-1" class="interactive-card active bg-white p-8 rounded-2xl border-l-8 border-sky-500 shadow-sm">
+                <div onclick="activateFlywheel(1)" id="fw-1" class="interactive-card active bg-gray-900 p-8 rounded-2xl border-l-8 border-sky-500 shadow-lg">
                     <div class="text-4xl mb-4">🎓</div>
-                    <h3 class="text-xl font-bold text-gray-900">1. Learn & Simulate</h3>
-                    <p class="text-sm text-gray-500 mt-2">The Entry Point</p>
+                    <h3 class="text-xl font-bold text-white">1. Learn & Simulate</h3>
+                    <p class="text-sm text-gray-400 mt-2">The Entry Point</p>
                 </div>
 
                 <!-- Flywheel Stage 2 -->
-                <div onclick="activateFlywheel(2)" id="fw-2" class="interactive-card bg-white p-8 rounded-2xl border-l-8 border-indigo-500 shadow-sm">
+                <div onclick="activateFlywheel(2)" id="fw-2" class="interactive-card bg-gray-900 p-8 rounded-2xl border-l-8 border-indigo-500 shadow-lg">
                     <div class="text-4xl mb-4">🛠️</div>
-                    <h3 class="text-xl font-bold text-gray-900">2. Create & Share</h3>
-                    <p class="text-sm text-gray-500 mt-2">The Moat (UGC)</p>
+                    <h3 class="text-xl font-bold text-white">2. Create & Share</h3>
+                    <p class="text-sm text-gray-400 mt-2">The Moat (UGC)</p>
                 </div>
 
                 <!-- Flywheel Stage 3 -->
-                <div onclick="activateFlywheel(3)" id="fw-3" class="interactive-card bg-white p-8 rounded-2xl border-l-8 border-emerald-500 shadow-sm">
+                <div onclick="activateFlywheel(3)" id="fw-3" class="interactive-card bg-gray-900 p-8 rounded-2xl border-l-8 border-emerald-500 shadow-lg">
                     <div class="text-4xl mb-4">🛒</div>
-                    <h3 class="text-xl font-bold text-gray-900">3. Buy Hardware</h3>
-                    <p class="text-sm text-gray-500 mt-2">Monetization</p>
+                    <h3 class="text-xl font-bold text-white">3. Buy Hardware</h3>
+                    <p class="text-sm text-gray-400 mt-2">Monetization</p>
                 </div>
             </div>
 
             <!-- Dynamic Details Panel -->
-            <div class="mt-8 bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+            <div class="mt-8 bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-800">
                 <div id="flywheel-details" class="transition-opacity duration-300">
                     <!-- JS Injected Content -->
                 </div>
@@ -242,31 +249,32 @@
     </section>
 
     <!-- Section 4: Competitive Radar -->
-    <section class="py-16 bg-white border-t border-gray-100">
+    <!-- Section 4: Competitive Radar -->
+    <section class="py-16 bg-gray-950 border-t border-gray-900">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 <div>
-                    <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Why We Win</h2>
-                    <p class="text-gray-600 mb-6">
+                    <h2 class="text-3xl font-extrabold text-white mb-6">Why We Win</h2>
+                    <p class="text-gray-400 mb-6">
                         Existing solutions are fragmented. Tinkercad is too simple; Physical Kits are too risky. Robo Sparrow dominates by bridging the gap between Virtual Design and Physical Reality.
                     </p>
                     
-                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
-                        <h4 class="font-bold text-gray-800 mb-3">Compare Against:</h4>
+                    <div class="bg-gray-900 p-6 rounded-xl border border-gray-800 shadow-lg">
+                        <h4 class="font-bold text-gray-200 mb-3">Compare Against:</h4>
                         <div class="space-y-3">
                             <label class="flex items-center space-x-3 cursor-pointer">
-                                <input type="checkbox" id="comp-tinkercad" checked onchange="updateRadar()" class="w-5 h-5 text-sky-600 rounded focus:ring-sky-500">
-                                <span class="text-gray-700">Tinkercad / Simulators</span>
+                                <input type="checkbox" id="comp-tinkercad" checked onchange="updateRadar()" class="w-5 h-5 text-sky-600 rounded focus:ring-sky-500 bg-gray-800 border-gray-700">
+                                <span class="text-gray-300">Tinkercad / Simulators</span>
                             </label>
                             <label class="flex items-center space-x-3 cursor-pointer">
-                                <input type="checkbox" id="comp-kits" checked onchange="updateRadar()" class="w-5 h-5 text-pink-500 rounded focus:ring-pink-500">
-                                <span class="text-gray-700">Physical Hardware Kits</span>
+                                <input type="checkbox" id="comp-kits" checked onchange="updateRadar()" class="w-5 h-5 text-pink-500 rounded focus:ring-pink-500 bg-gray-800 border-gray-700">
+                                <span class="text-gray-300">Physical Hardware Kits</span>
                             </label>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-lg p-4 border border-gray-100">
+                <div class="bg-gray-900 rounded-xl shadow-xl p-4 border border-gray-800">
                     <div class="chart-container">
                         <canvas id="radarChart"></canvas>
                     </div>
@@ -276,23 +284,24 @@
     </section>
 
     <!-- Section 5: Financial Command Center -->
-    <section id="financials" class="py-16 bg-[#F5F5F0]">
+    <!-- Section 5: Financial Command Center -->
+    <section id="financials" class="py-16 bg-gray-950">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-end mb-12">
                 <div>
-                    <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Financial Command Center</h2>
-                    <p class="text-gray-600">Projections based on PLG (Product-Led Growth) adoption.</p>
+                    <h2 class="text-3xl font-extrabold text-white mb-2">Financial Command Center</h2>
+                    <p class="text-gray-400">Projections based on PLG (Product-Led Growth) adoption.</p>
                 </div>
-                <div class="mt-4 md:mt-0 bg-white rounded-lg p-1 shadow-sm border border-gray-200 flex">
-                    <button onclick="updateFinancials('revenue')" class="px-4 py-2 rounded-md text-sm font-bold bg-gray-100 text-gray-900 hover:bg-gray-200 transition" id="tab-revenue">Revenue Mix</button>
-                    <button onclick="updateFinancials('growth')" class="px-4 py-2 rounded-md text-sm font-bold text-gray-500 hover:text-gray-900 transition" id="tab-growth">Growth Curve</button>
+                <div class="mt-4 md:mt-0 bg-gray-900 rounded-lg p-1 shadow-md border border-gray-800 flex">
+                    <button onclick="updateFinancials('revenue')" class="px-4 py-2 rounded-md text-sm font-bold bg-gray-800 text-white hover:bg-gray-700 transition" id="tab-revenue">Revenue Mix</button>
+                    <button onclick="updateFinancials('growth')" class="px-4 py-2 rounded-md text-sm font-bold text-gray-500 hover:text-white transition" id="tab-growth">Growth Curve</button>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Main Financial Chart -->
-                <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4" id="fin-chart-title">Revenue Composition</h3>
+                <div class="lg:col-span-2 bg-gray-900 rounded-2xl shadow-xl p-6 border border-gray-800">
+                    <h3 class="text-lg font-bold text-gray-200 mb-4" id="fin-chart-title">Revenue Composition</h3>
                     <!-- Chart container for Chart.js or Plotly -->
                     <div id="financial-chart-container" class="chart-container">
                         <canvas id="revenueMixChart"></canvas>
@@ -300,37 +309,37 @@
                 </div>
 
                 <!-- Unit Economics Panel -->
-                <div class="lg:col-span-1 bg-white rounded-2xl shadow-lg p-6 border border-gray-100 flex flex-col justify-between">
+                <div class="lg:col-span-1 bg-gray-900 rounded-2xl shadow-xl p-6 border border-gray-800 flex flex-col justify-between">
                     <div>
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Unit Economics</h3>
+                        <h3 class="text-lg font-bold text-gray-200 mb-4">Unit Economics</h3>
                         <div class="space-y-6">
                             <div>
-                                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
                                     <span>CAC (Cost of Acquisition)</span>
-                                    <span class="font-bold">$15</span>
+                                    <span class="font-bold text-white">$15</span>
                                 </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="w-full bg-gray-800 rounded-full h-2">
                                     <div class="bg-red-500 h-2 rounded-full" style="width: 15%"></div>
                                 </div>
-                                <p class="text-xs text-gray-400 mt-1">Low due to organic/freemium model.</p>
+                                <p class="text-xs text-gray-500 mt-1">Low due to organic/freemium model.</p>
                             </div>
                             <div>
-                                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                <div class="flex justify-between text-sm text-gray-400 mb-1">
                                     <span>LTV (Lifetime Value)</span>
-                                    <span class="font-bold">$250</span>
+                                    <span class="font-bold text-white">$250</span>
                                 </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="w-full bg-gray-800 rounded-full h-2">
                                     <div class="bg-emerald-500 h-2 rounded-full" style="width: 80%"></div>
                                 </div>
-                                <p class="text-xs text-gray-400 mt-1">High due to recurring hardware purchases.</p>
+                                <p class="text-xs text-gray-500 mt-1">High due to recurring hardware purchases.</p>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="mt-8 p-4 bg-sky-50 rounded-xl border border-sky-100">
-                        <span class="block text-xs font-bold text-sky-500 uppercase">LTV:CAC Ratio</span>
-                        <span class="block text-3xl font-black text-gray-900">16:1</span>
-                        <span class="block text-xs text-gray-600 mt-1">Exceptional efficiency.</span>
+                    <div class="mt-8 p-4 bg-sky-900/20 rounded-xl border border-sky-900/50">
+                        <span class="block text-xs font-bold text-sky-400 uppercase">LTV:CAC Ratio</span>
+                        <span class="block text-3xl font-black text-white">16:1</span>
+                        <span class="block text-xs text-gray-400 mt-1">Exceptional efficiency.</span>
                     </div>
                 </div>
             </div>
@@ -338,11 +347,11 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12">
+    <footer class="bg-gray-900 text-white py-12 border-t border-gray-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h3 class="text-2xl font-bold mb-4">Ready to Democratize Hardware?</h3>
             <p class="text-gray-400 mb-8">Robo Sparrow: Built for YC Spring 2026.</p>
-            <div class="text-sm text-gray-600">
+            <div class="text-sm text-gray-500">
                 &copy; 2026 Robo Sparrow. All rights reserved.
             </div>
         </div>
@@ -527,11 +536,11 @@
             [1, 2, 3].forEach(s => {
                 const el = document.getElementById(`fw-${s}`);
                 if(s === step) {
-                    el.classList.add('active', 'bg-gray-50');
-                    el.classList.remove('bg-white');
+                    el.classList.add('active', 'bg-gray-900');
+                    el.classList.remove('bg-gray-800'); // Assuming non-active has slightly lighter/different shade if needed, but here base is 900.
+                    // Actually base was 900, let's just use active class for border/glow
                 } else {
-                    el.classList.remove('active', 'bg-gray-50');
-                    el.classList.add('bg-white');
+                    el.classList.remove('active');
                 }
             });
 
@@ -544,12 +553,12 @@
                 contentDiv.innerHTML = `
                     <div class="flex flex-col md:flex-row justify-between items-start">
                         <div class="md:w-3/4 pr-8">
-                            <h4 class="text-2xl font-bold text-sky-600 mb-4">${d.title}</h4>
-                            <div class="text-gray-700 leading-relaxed">${d.content}</div>
+                            <h4 class="text-2xl font-bold text-sky-500 mb-4">${d.title}</h4>
+                            <div class="text-gray-300 leading-relaxed">${d.content}</div>
                         </div>
-                        <div class="mt-4 md:mt-0 md:w-1/4 bg-gray-100 rounded-lg p-4 text-center">
+                        <div class="mt-4 md:mt-0 md:w-1/4 bg-gray-800 rounded-lg p-4 text-center">
                             <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Success Metric</span>
-                            <span class="block text-sm font-bold text-gray-900 mt-1">${d.stats}</span>
+                            <span class="block text-sm font-bold text-white mt-1">${d.stats}</span>
                         </div>
                     </div>
                 `;
@@ -597,15 +606,16 @@
                     maintainAspectRatio: false,
                     scales: {
                         r: {
-                            angleLines: { color: '#E5E7EB' },
-                            grid: { color: '#E5E7EB' },
-                            pointLabels: { font: { size: 12 } },
+                            angleLines: { color: '#374151' }, // Gray 700
+                            grid: { color: '#374151' }, // Gray 700
+                            pointLabels: { font: { size: 12 }, color: '#9CA3AF' }, // Gray 400
                             suggestedMin: 0,
-                            suggestedMax: 100
+                            suggestedMax: 100,
+                            ticks: { display: false, backdropColor: 'transparent' } // Hide backdrop
                         }
                     },
                     plugins: {
-                        legend: { position: 'top' }
+                        legend: { position: 'top', labels: { color: '#D1D5DB' } } // Gray 300
                     }
                 }
             });
@@ -630,8 +640,8 @@
             const btnGrow = document.getElementById('tab-growth');
 
             if(view === 'revenue') {
-                btnRev.className = "px-4 py-2 rounded-md text-sm font-bold bg-gray-100 text-gray-900 hover:bg-gray-200 transition";
-                btnGrow.className = "px-4 py-2 rounded-md text-sm font-bold text-gray-500 hover:text-gray-900 transition";
+                btnRev.className = "px-4 py-2 rounded-md text-sm font-bold bg-gray-800 text-white hover:bg-gray-700 transition";
+                btnGrow.className = "px-4 py-2 rounded-md text-sm font-bold text-gray-500 hover:text-white transition";
                 title.innerText = "Revenue Composition";
                 
                 // Destroy Plotly if exists, Create Chart.js
@@ -652,13 +662,13 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { legend: { position: 'right' } }
+                        plugins: { legend: { position: 'right', labels: { color: '#D1D5DB' } } }
                     }
                 });
 
             } else {
-                btnGrow.className = "px-4 py-2 rounded-md text-sm font-bold bg-gray-100 text-gray-900 hover:bg-gray-200 transition";
-                btnRev.className = "px-4 py-2 rounded-md text-sm font-bold text-gray-500 hover:text-gray-900 transition";
+                btnGrow.className = "px-4 py-2 rounded-md text-sm font-bold bg-gray-800 text-white hover:bg-gray-700 transition";
+                btnRev.className = "px-4 py-2 rounded-md text-sm font-bold text-gray-500 hover:text-white transition";
                 title.innerText = "5-Year Revenue Projection ($M)";
                 
                 // Clear container for Plotly
@@ -676,8 +686,11 @@
                 
                 const layout = {
                     margin: {t: 20, r: 20, b: 40, l: 40},
-                    xaxis: { title: 'Year' },
-                    yaxis: { title: 'Revenue ($M)' },
+                    xaxis: { title: 'Year', color: '#9CA3AF', gridcolor: '#374151' },
+                    yaxis: { title: 'Revenue ($M)', color: '#9CA3AF', gridcolor: '#374151' },
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    font: { color: '#D1D5DB' },
                     autosize: true
                 };
                 
