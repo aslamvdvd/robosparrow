@@ -202,8 +202,7 @@ const Landing: React.FC<Props> = () => {
                     <div className="absolute top-full left-0 mt-2 w-56 rounded-xl border border-gray-800 bg-gray-900/95 backdrop-blur-xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
                       <a
                         href="/investors/dashboard/"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        onClick={() => setShowPitchOptions(false)}
                         className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-sm text-gray-300 hover:text-white transition-colors group"
                       >
                         <Zap className="w-4 h-4 text-amber-400 group-hover:text-amber-300" />
@@ -218,8 +217,7 @@ const Landing: React.FC<Props> = () => {
                       </a>
                       <a
                         href="/investors/plan/"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        onClick={() => setShowPitchOptions(false)}
                         className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-sm text-gray-300 hover:text-white transition-colors group"
                       >
                         <FileText className="w-4 h-4 text-blue-400 group-hover:text-blue-300" />
