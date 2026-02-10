@@ -5,10 +5,12 @@ import Studio from "./components/Studio";
 import SEO from "./components/SEO";
 import About from "./components/About";
 import Contact from "./components/Contact";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route
           path="/"
