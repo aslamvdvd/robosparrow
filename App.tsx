@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./components/Landing";
 import Studio from "./components/Studio";
 import SEO from "./components/SEO";
+import About from "./components/About";
+import Contact from "./components/Contact";
 
 function App() {
   return (
@@ -29,6 +31,30 @@ function App() {
                 description="Design circuits, write code, and collaborate with AI to build your virtual robot."
               />
               <Studio />
+            </>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <>
+              <SEO
+                title="About Us"
+                description="Our vision to democratize hardware education."
+              />
+              <About />
+            </>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <>
+              <SEO
+                title="Contact Us"
+                description="Get in touch with the Robo Sparrow team."
+              />
+              <Contact />
             </>
           }
         />

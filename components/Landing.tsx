@@ -8,7 +8,7 @@ import {
   ChevronDown,
   FileText,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 interface Props {}
 
@@ -481,12 +481,20 @@ const Landing: React.FC<Props> = () => {
             <h4 className="text-gray-100 font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm text-gray-500">
               <li>
-                <a
-                  href="/about"
+                <Link
+                  to="/about"
                   className="hover:text-blue-400 transition-colors"
                 >
                   About Us
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/contact"
+                  className="hover:text-blue-400 transition-colors"
+                >
+                  Contact Us
+                </Link>
               </li>
               <li>
                 <a
