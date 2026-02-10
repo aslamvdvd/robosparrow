@@ -1,5 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Terminal, ArrowRight, Cpu, Code2, Zap } from "lucide-react";
+import {
+  Terminal,
+  ArrowRight,
+  Cpu,
+  Code2,
+  Zap,
+  ChevronDown,
+  FileText,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Props {}
@@ -10,6 +18,24 @@ const Landing: React.FC<Props> = () => {
   const parallaxRef = useRef<HTMLDivElement | null>(null);
   const bigTitleRef = useRef<HTMLDivElement | null>(null);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const [showPitchOptions, setShowPitchOptions] = useState(false);
+  const pitchDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        pitchDropdownRef.current &&
+        !pitchDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowPitchOptions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
@@ -160,6 +186,53 @@ const Landing: React.FC<Props> = () => {
                 <button className="px-6 py-3 rounded-2xl border border-gray-800 bg-gray-900/60 text-gray-300 hover:bg-gray-800">
                   View Documentation
                 </button>
+
+                <div className="relative" ref={pitchDropdownRef}>
+                  <button
+                    onClick={() => setShowPitchOptions(!showPitchOptions)}
+                    className="px-6 py-3 rounded-2xl border border-gray-800 bg-gray-900/60 text-gray-300 hover:bg-gray-800 inline-flex items-center gap-2 transition-all"
+                  >
+                    View Pitch Deck
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform ${showPitchOptions ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  {showPitchOptions && (
+                    <div className="absolute top-full left-0 mt-2 w-56 rounded-xl border border-gray-800 bg-gray-900/95 backdrop-blur-xl shadow-2xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                      <a
+                        href="/investors/dashboard/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-sm text-gray-300 hover:text-white transition-colors group"
+                      >
+                        <Zap className="w-4 h-4 text-amber-400 group-hover:text-amber-300" />
+                        <div>
+                          <div className="font-semibold">
+                            Strategic Dashboard
+                          </div>
+                          <div className="text-[10px] text-gray-500">
+                            Market & Financials
+                          </div>
+                        </div>
+                      </a>
+                      <a
+                        href="/investors/plan/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-sm text-gray-300 hover:text-white transition-colors group"
+                      >
+                        <FileText className="w-4 h-4 text-blue-400 group-hover:text-blue-300" />
+                        <div>
+                          <div className="font-semibold">Business Plan</div>
+                          <div className="text-[10px] text-gray-500">
+                            Unicorn Thesis
+                          </div>
+                        </div>
+                      </a>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* vertical console marquee */}
@@ -345,16 +418,107 @@ const Landing: React.FC<Props> = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800 bg-gray-900/80 py-8">
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-sm text-gray-500">
-          <div className="flex items-center gap-2">
-            <Terminal className="w-5 h-5" /> <span>Robo Sparrow</span>
+      {/* Footer */}
+      <footer className="border-t border-gray-800 bg-gray-950 py-12">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-gray-100 font-bold text-lg">
+              <Terminal className="w-6 h-6 text-blue-500" />{" "}
+              <span>Robo Sparrow</span>
+            </div>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              The world's first browser-based, AI-native robotics laboratory. No
+              hardware required.
+            </p>
           </div>
-          <div className="flex items-center gap-2 text-white">
-            Built with ❤️ for the builders of tomorrow
+
+          <div>
+            <h4 className="text-gray-100 font-semibold mb-4">Product</h4>
+            <ul className="space-y-2 text-sm text-gray-500">
+              <li>
+                <button
+                  onClick={onStart}
+                  className="hover:text-blue-400 transition-colors"
+                >
+                  Studio
+                </button>
+              </li>
+              <li>
+                <a href="#" className="hover:text-blue-400 transition-colors">
+                  Documentation
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-blue-400 transition-colors">
+                  Component Library
+                </a>
+              </li>
+            </ul>
           </div>
-          <div className="flex items-center gap-2 text-white">
-            © 2026 Robo Sparrow Simulation Systems
+
+          <div>
+            <h4 className="text-gray-100 font-semibold mb-4">Technology</h4>
+            <ul className="space-y-2 text-sm text-gray-500">
+              <li>
+                <a href="#" className="hover:text-blue-400 transition-colors">
+                  Simulation Engine
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-blue-400 transition-colors">
+                  Gemini 3 Integration
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-blue-400 transition-colors">
+                  Firmware Runtime
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-gray-100 font-semibold mb-4">Company</h4>
+            <ul className="space-y-2 text-sm text-gray-500">
+              <li>
+                <a
+                  href="/about"
+                  className="hover:text-blue-400 transition-colors"
+                >
+                  About Us
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/investors/dashboard/"
+                  className="text-sky-500 hover:text-sky-400 font-medium transition-colors flex items-center gap-2"
+                >
+                  Strategic Dashboard <Zap className="w-3 h-3" />
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/investors/plan/"
+                  className="hover:text-blue-400 transition-colors"
+                >
+                  Business Plan
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-gray-900 flex flex-col md:flex-row items-center justify-between text-xs text-gray-600">
+          <div>
+            © 2026 Robo Sparrow Simulation Systems. All rights reserved.
+          </div>
+          <div className="flex items-center gap-4 mt-4 md:mt-0">
+            <a href="#" className="hover:text-gray-400">
+              Privacy Policy
+            </a>
+            <a href="#" className="hover:text-gray-400">
+              Terms of Service
+            </a>
           </div>
         </div>
       </footer>

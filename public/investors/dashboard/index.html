@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robo Sparrow | Strategic Interactive Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style type="text/tailwindcss">
+        /* Custom Font Import */
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #F5F5F0; /* Warm Neutral Background */
+            color: #1F2937;
+        }
+
+        /* Chart Container Styling - MANDATORY */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            height: 350px;
+            margin: 0 auto;
+        }
+        
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        /* Interactive Card Styling */
+        .interactive-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .interactive-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        .interactive-card.active {
+            border-color: #0EA5E9; /* Sky 500 */
+            background-color: #F0F9FF; /* Sky 50 */
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #E5E5E5; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #9CA3AF; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6B7280; 
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals & Tech Accents -->
+    <!-- Background: #F5F5F0 (Stone/Warm White) -->
+    <!-- Cards: #FFFFFF (White) -->
+    <!-- Text: #1F2937 (Gray 800) -->
+    <!-- Primary Accent: #0EA5E9 (Sky Blue - Innovation) -->
+    <!-- Secondary Accent: #F59E0B (Amber - Opportunity/Warning) -->
+    <!-- Success: #10B981 (Emerald - Growth) -->
+
+    <!-- Application Structure Plan:
+         1. Hero Section: High-level pitch and "Hair on Fire" problem interactive toggle.
+         2. The Opportunity (Market): Interactive breakdown of TAM/SAM/SOM to visualize scale.
+         3. The Engine (Business Model): A "Flywheel" interaction where clicking stages reveals revenue logic.
+         4. Competitive Landscape: Interactive Radar chart to toggle competitors and seeing strengths.
+         5. Financial Command Center: Dynamic charts allowing users to switch between Revenue Mix and Growth Scenarios.
+         6. Roadmap: Interactive timeline.
+         WHY: This structure mimics an investor deep-dive, allowing non-linear exploration of the startup's critical risks and opportunities.
+    -->
+
+    <!-- Visualization & Content Choices:
+         1. Problem Friction: HTML/JS Toggle -> Goal: Inform -> Swaps text/metrics -> Simple, high impact.
+         2. Market Size: Chart.js Bar (Horizontal) -> Goal: Compare -> Clear hierarchy of market segments.
+         3. Flywheel: HTML Grid + JS State -> Goal: Explain Process -> Click-to-reveal details -> No SVG needed.
+         4. Competition: Chart.js Radar -> Goal: Compare -> Best for multi-variable assessment.
+         5. Financials: Chart.js Doughnut (Mix) & Plotly Area (Growth) -> Goal: Inform/Change -> Complex data made accessible.
+         6. Unit Economics: Chart.js Bar -> Goal: Inform -> LTV/CAC ratio visualization.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl mr-2">🦜</span>
+                    <span class="font-extrabold text-xl tracking-tight text-gray-900">Robo <span class="text-sky-500">Sparrow</span></span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <button onclick="scrollToSection('opportunity')" class="text-gray-500 hover:text-sky-600 font-medium transition">The Opportunity</button>
+                    <button onclick="scrollToSection('flywheel')" class="text-gray-500 hover:text-sky-600 font-medium transition">The Flywheel</button>
+                    <button onclick="scrollToSection('financials')" class="text-gray-500 hover:text-sky-600 font-medium transition">Financials</button>
+                    <button onclick="window.location.href='/studio'" class="bg-sky-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-sky-600 transition shadow-md">Run Simulation</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero / The Problem -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div>
+                <div class="inline-block bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wide px-3 py-1 rounded-full mb-4">Strategic Overview</div>
+                <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight mb-6">
+                    Hardware Innovation with <span class="text-sky-500">Zero Risk</span>.
+                </h1>
+                <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+                    We are building the "Github for Hardware." Robo Sparrow solves the "Hair on Fire" problem of expensive barriers to entry in robotics by combining simulation, AI education, and a marketplace into a single platform.
+                </p>
+                
+                <!-- Interactive Friction Toggle -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                    <h3 class="font-bold text-gray-800 mb-4">Compare The Workflow:</h3>
+                    <div class="flex space-x-4 mb-4">
+                        <button id="btn-trad" onclick="updateFriction('traditional')" class="flex-1 py-2 px-4 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 font-semibold transition">Traditional Way</button>
+                        <button id="btn-robo" onclick="updateFriction('robo')" class="flex-1 py-2 px-4 rounded-lg bg-sky-500 text-white shadow-md font-semibold transition">The Robo Sparrow Way</button>
+                    </div>
+                    <div id="friction-content" class="min-h-[120px]">
+                        <!-- Dynamic Content Loaded via JS -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Key Metric Visualization -->
+            <div class="relative">
+                <div class="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6">Barriers to Entry Index</h3>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="frictionChart"></canvas>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-4 text-center">
+                        Comparing friction points (Cost, Fear, Time) between status quo and our solution.
+                    </p>
+                </div>
+                <!-- Decorative Circle -->
+                <div class="absolute -z-10 top-10 -right-10 w-72 h-72 bg-sky-100 rounded-full blur-3xl opacity-50"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Market Opportunity -->
+    <section id="opportunity" class="bg-white py-16 border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-4">The Trillion-Dollar Intersection</h2>
+                <p class="text-gray-600">
+                    We sit at the convergence of EdTech, IoT, and the Creator Economy. Explore the market layers below to understand our growth potential.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Interactive Market Selector -->
+                <div class="col-span-1 space-y-4">
+                    <div onclick="updateMarketView('tam')" class="interactive-card active p-6 rounded-xl border border-gray-200 bg-sky-50" id="card-tam">
+                        <h4 class="text-lg font-bold text-gray-900">TAM (Total Addressable)</h4>
+                        <p class="text-sm text-gray-600 mt-1">Global EdTech + IoT Markets.</p>
+                        <div class="mt-2 text-2xl font-black text-sky-600">$1.6 Trillion</div>
+                    </div>
+                    <div onclick="updateMarketView('sam')" class="interactive-card p-6 rounded-xl border border-gray-200 bg-white" id="card-sam">
+                        <h4 class="text-lg font-bold text-gray-900">SAM (Serviceable Available)</h4>
+                        <p class="text-sm text-gray-600 mt-1">Technical Edu & Prototyping Tools.</p>
+                        <div class="mt-2 text-2xl font-black text-emerald-600">$50 Billion</div>
+                    </div>
+                    <div onclick="updateMarketView('som')" class="interactive-card p-6 rounded-xl border border-gray-200 bg-white" id="card-som">
+                        <h4 class="text-lg font-bold text-gray-900">SOM (Obtainable)</h4>
+                        <p class="text-sm text-gray-600 mt-1">Target: 5 Year Capture (0.5%).</p>
+                        <div class="mt-2 text-2xl font-black text-indigo-600">$250 Million</div>
+                    </div>
+                </div>
+
+                <!-- Market Chart -->
+                <div class="col-span-1 lg:col-span-2 bg-gray-50 rounded-2xl p-6 border border-gray-100 flex flex-col justify-center">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4" id="market-chart-title">Market Size Visualization</h3>
+                    <div class="chart-container">
+                        <canvas id="marketChart"></canvas>
+                    </div>
+                    <p id="market-desc" class="text-sm text-gray-500 mt-4 text-center">
+                        Select a market segment on the left to explore details.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: The Flywheel Business Model -->
+    <section id="flywheel" class="py-16 bg-[#F5F5F0]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-12">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-4">The "Flywheel" Engine</h2>
+                <p class="text-gray-600 max-w-2xl">
+                    Unlike standard e-commerce, our model creates a self-reinforcing loop. Click on each stage of the flywheel to understand how we capture value at every step.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Flywheel Stage 1 -->
+                <div onclick="activateFlywheel(1)" id="fw-1" class="interactive-card active bg-white p-8 rounded-2xl border-l-8 border-sky-500 shadow-sm">
+                    <div class="text-4xl mb-4">🎓</div>
+                    <h3 class="text-xl font-bold text-gray-900">1. Learn & Simulate</h3>
+                    <p class="text-sm text-gray-500 mt-2">The Entry Point</p>
+                </div>
+
+                <!-- Flywheel Stage 2 -->
+                <div onclick="activateFlywheel(2)" id="fw-2" class="interactive-card bg-white p-8 rounded-2xl border-l-8 border-indigo-500 shadow-sm">
+                    <div class="text-4xl mb-4">🛠️</div>
+                    <h3 class="text-xl font-bold text-gray-900">2. Create & Share</h3>
+                    <p class="text-sm text-gray-500 mt-2">The Moat (UGC)</p>
+                </div>
+
+                <!-- Flywheel Stage 3 -->
+                <div onclick="activateFlywheel(3)" id="fw-3" class="interactive-card bg-white p-8 rounded-2xl border-l-8 border-emerald-500 shadow-sm">
+                    <div class="text-4xl mb-4">🛒</div>
+                    <h3 class="text-xl font-bold text-gray-900">3. Buy Hardware</h3>
+                    <p class="text-sm text-gray-500 mt-2">Monetization</p>
+                </div>
+            </div>
+
+            <!-- Dynamic Details Panel -->
+            <div class="mt-8 bg-white rounded-2xl shadow-lg p-8 border border-gray-200">
+                <div id="flywheel-details" class="transition-opacity duration-300">
+                    <!-- JS Injected Content -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Competitive Radar -->
+    <section class="py-16 bg-white border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Why We Win</h2>
+                    <p class="text-gray-600 mb-6">
+                        Existing solutions are fragmented. Tinkercad is too simple; Physical Kits are too risky. Robo Sparrow dominates by bridging the gap between Virtual Design and Physical Reality.
+                    </p>
+                    
+                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                        <h4 class="font-bold text-gray-800 mb-3">Compare Against:</h4>
+                        <div class="space-y-3">
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" id="comp-tinkercad" checked onchange="updateRadar()" class="w-5 h-5 text-sky-600 rounded focus:ring-sky-500">
+                                <span class="text-gray-700">Tinkercad / Simulators</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" id="comp-kits" checked onchange="updateRadar()" class="w-5 h-5 text-pink-500 rounded focus:ring-pink-500">
+                                <span class="text-gray-700">Physical Hardware Kits</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-4 border border-gray-100">
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Financial Command Center -->
+    <section id="financials" class="py-16 bg-[#F5F5F0]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-gray-900 mb-2">Financial Command Center</h2>
+                    <p class="text-gray-600">Projections based on PLG (Product-Led Growth) adoption.</p>
+                </div>
+                <div class="mt-4 md:mt-0 bg-white rounded-lg p-1 shadow-sm border border-gray-200 flex">
+                    <button onclick="updateFinancials('revenue')" class="px-4 py-2 rounded-md text-sm font-bold bg-gray-100 text-gray-900 hover:bg-gray-200 transition" id="tab-revenue">Revenue Mix</button>
+                    <button onclick="updateFinancials('growth')" class="px-4 py-2 rounded-md text-sm font-bold text-gray-500 hover:text-gray-900 transition" id="tab-growth">Growth Curve</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Main Financial Chart -->
+                <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4" id="fin-chart-title">Revenue Composition</h3>
+                    <!-- Chart container for Chart.js or Plotly -->
+                    <div id="financial-chart-container" class="chart-container">
+                        <canvas id="revenueMixChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Unit Economics Panel -->
+                <div class="lg:col-span-1 bg-white rounded-2xl shadow-lg p-6 border border-gray-100 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Unit Economics</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                    <span>CAC (Cost of Acquisition)</span>
+                                    <span class="font-bold">$15</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-red-500 h-2 rounded-full" style="width: 15%"></div>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-1">Low due to organic/freemium model.</p>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                    <span>LTV (Lifetime Value)</span>
+                                    <span class="font-bold">$250</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-emerald-500 h-2 rounded-full" style="width: 80%"></div>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-1">High due to recurring hardware purchases.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 p-4 bg-sky-50 rounded-xl border border-sky-100">
+                        <span class="block text-xs font-bold text-sky-500 uppercase">LTV:CAC Ratio</span>
+                        <span class="block text-3xl font-black text-gray-900">16:1</span>
+                        <span class="block text-xs text-gray-600 mt-1">Exceptional efficiency.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h3 class="text-2xl font-bold mb-4">Ready to Democratize Hardware?</h3>
+            <p class="text-gray-400 mb-8">Robo Sparrow: Built for YC Spring 2026.</p>
+            <div class="text-sm text-gray-600">
+                &copy; 2026 Robo Sparrow. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- Navigation Scroll Logic ---
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- Data Definitions ---
+        const frictionData = {
+            traditional: {
+                title: "Traditional Hardware Learning",
+                text: "Requires buying expensive kits upfront ($100+). If you wire it wrong, the 'Magic Smoke' comes out and you lose money. Shipping takes days. High anxiety.",
+                metrics: [85, 95, 80], // Cost, Fear, Time
+                color: '#EF4444' // Red
+            },
+            robo: {
+                title: "The Robo Sparrow Way",
+                text: "Start for free instantly in browser. Wire it wrong? The AI Agent explains why and you reset in 1 second. Buy parts only when you KNOW they work.",
+                metrics: [0, 5, 5], // Cost, Fear, Time
+                color: '#10B981' // Green
+            }
+        };
+
+        const flywheelData = {
+            1: {
+                title: "Step 1: Learn & Simulate",
+                content: "<strong>The Hook:</strong> Users enter via the free, browser-based simulation sandbox. <br><br><strong>Key Action:</strong> Zero-setup 'Hello World' with virtual Arduino/ESP32. <br><br><strong>Value:</strong> Eliminates CAC (Customer Acquisition Cost) barriers.",
+                stats: "Target: 100k Monthly Active Users (MAU)"
+            },
+            2: {
+                title: "Step 2: Create & Share",
+                content: "<strong>The Moat:</strong> Users save projects and creating custom component profiles. <br><br><strong>Key Action:</strong> 'Forking' existing robot designs. <br><br><strong>Value:</strong> Creates network effects. The more users, the bigger the library.",
+                stats: "Metric: 500+ New User Components / Month"
+            },
+            3: {
+                title: "Step 3: Buy Hardware",
+                content: "<strong>The Revenue:</strong> Confident users click 'Buy Project Kit'. <br><br><strong>Key Action:</strong> Affiliate sales or Direct Fulfillment. <br><br><strong>Value:</strong> High LTV (Lifetime Value) transactional revenue.",
+                stats: "Metric: 5% Conversion Rate to Purchase"
+            }
+        };
+
+        // --- CHART INSTANCES ---
+        let frictionChartInst = null;
+        let marketChartInst = null;
+        let radarChartInst = null;
+        let financialChartInst = null;
+
+        // --- 1. HERO FRICTION TOGGLE LOGIC ---
+        function updateFriction(mode) {
+            const contentDiv = document.getElementById('friction-content');
+            const data = frictionData[mode];
+            
+            // Update Text
+            contentDiv.innerHTML = `
+                <h4 class="text-lg font-bold text-gray-900 mb-2">${data.title}</h4>
+                <p class="text-gray-600 text-sm">${data.text}</p>
+            `;
+
+            // Update Buttons Styles
+            document.getElementById('btn-trad').className = mode === 'traditional' 
+                ? "flex-1 py-2 px-4 rounded-lg bg-red-500 text-white shadow-md font-semibold transition"
+                : "flex-1 py-2 px-4 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 font-semibold transition";
+            
+            document.getElementById('btn-robo').className = mode === 'robo'
+                ? "flex-1 py-2 px-4 rounded-lg bg-emerald-500 text-white shadow-md font-semibold transition"
+                : "flex-1 py-2 px-4 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 font-semibold transition";
+
+            // Update Chart
+            if(frictionChartInst) {
+                frictionChartInst.data.datasets[0].data = data.metrics;
+                frictionChartInst.data.datasets[0].backgroundColor = data.color;
+                frictionChartInst.data.datasets[0].label = data.title;
+                frictionChartInst.update();
+            }
+        }
+
+        function initFrictionChart() {
+            const ctx = document.getElementById('frictionChart').getContext('2d');
+            frictionChartInst = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Upfront Cost', 'Fear of Failure', 'Time to Start'],
+                    datasets: [{
+                        label: 'Friction Level',
+                        data: frictionData.robo.metrics, // Start with Robo
+                        backgroundColor: frictionData.robo.color,
+                        borderRadius: 8,
+                        barThickness: 40
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 100, display: false },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+            updateFriction('robo'); // Init state
+        }
+
+        // --- 2. MARKET OPPORTUNITY LOGIC ---
+        function updateMarketView(type) {
+            // Update Card Styles
+            ['tam', 'sam', 'som'].forEach(t => {
+                const el = document.getElementById(`card-${t}`);
+                if(t === type) {
+                    el.classList.add('active', 'bg-sky-50', 'border-sky-500');
+                    el.classList.remove('bg-white');
+                } else {
+                    el.classList.remove('active', 'bg-sky-50', 'border-sky-500');
+                    el.classList.add('bg-white');
+                }
+            });
+
+            // Update Chart Data
+            let labels, data, colors, title, desc;
+            if(type === 'tam') {
+                labels = ['IoT Market', 'EdTech Market'];
+                data = [1200, 400]; // Billions
+                colors = ['#0EA5E9', '#6366F1'];
+                title = "Total Addressable Market ($1.6T)";
+                desc = "The combined force of the massive IoT industry and the booming EdTech sector.";
+            } else if (type === 'sam') {
+                labels = ['Tech Education', 'Prototyping Tools', 'Hobby Electronics'];
+                data = [25, 10, 15]; // Billions
+                colors = ['#10B981', '#34D399', '#6EE7B7'];
+                title = "Serviceable Available Market ($50B)";
+                desc = "The specific niche of people actively paying to learn or build hardware.";
+            } else {
+                labels = ['University Licenses', 'Pro Subscribers', 'Hardware Margins'];
+                data = [50, 100, 100]; // Millions
+                colors = ['#F59E0B', '#FBBF24', '#FCD34D'];
+                title = "Serviceable Obtainable Market ($250M)";
+                desc = "Our realistic 5-year revenue target based on capturing just 0.5% of the SAM.";
+            }
+
+            document.getElementById('market-chart-title').innerText = title;
+            document.getElementById('market-desc').innerText = desc;
+
+            if(marketChartInst) {
+                marketChartInst.data.labels = labels;
+                marketChartInst.data.datasets[0].data = data;
+                marketChartInst.data.datasets[0].backgroundColor = colors;
+                marketChartInst.update();
+            }
+        }
+
+        function initMarketChart() {
+            const ctx = document.getElementById('marketChart').getContext('2d');
+            marketChartInst = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+            updateMarketView('tam');
+        }
+
+        // --- 3. FLYWHEEL LOGIC ---
+        function activateFlywheel(step) {
+            // Visual Update
+            [1, 2, 3].forEach(s => {
+                const el = document.getElementById(`fw-${s}`);
+                if(s === step) {
+                    el.classList.add('active', 'bg-gray-50');
+                    el.classList.remove('bg-white');
+                } else {
+                    el.classList.remove('active', 'bg-gray-50');
+                    el.classList.add('bg-white');
+                }
+            });
+
+            // Content Update
+            const d = flywheelData[step];
+            const contentDiv = document.getElementById('flywheel-details');
+            contentDiv.style.opacity = '0';
+            
+            setTimeout(() => {
+                contentDiv.innerHTML = `
+                    <div class="flex flex-col md:flex-row justify-between items-start">
+                        <div class="md:w-3/4 pr-8">
+                            <h4 class="text-2xl font-bold text-sky-600 mb-4">${d.title}</h4>
+                            <div class="text-gray-700 leading-relaxed">${d.content}</div>
+                        </div>
+                        <div class="mt-4 md:mt-0 md:w-1/4 bg-gray-100 rounded-lg p-4 text-center">
+                            <span class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Success Metric</span>
+                            <span class="block text-sm font-bold text-gray-900 mt-1">${d.stats}</span>
+                        </div>
+                    </div>
+                `;
+                contentDiv.style.opacity = '1';
+            }, 300);
+        }
+
+        // --- 4. RADAR CHART LOGIC ---
+        function initRadarChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            radarChartInst = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Ease of Use', 'Realism', 'Cost Efficiency', 'Collaboration', 'AI Help'],
+                    datasets: [
+                        {
+                            label: 'Robo Sparrow',
+                            data: [90, 85, 95, 90, 100],
+                            fill: true,
+                            backgroundColor: 'rgba(14, 165, 233, 0.2)', // Sky
+                            borderColor: '#0EA5E9',
+                            pointBackgroundColor: '#0EA5E9',
+                            pointHoverBorderColor: '#fff'
+                        },
+                        {
+                            label: 'Tinkercad',
+                            data: [95, 40, 95, 50, 10],
+                            fill: true,
+                            backgroundColor: 'rgba(156, 163, 175, 0.2)', // Gray
+                            borderColor: '#9CA3AF',
+                            hidden: false
+                        },
+                        {
+                            label: 'Physical Kits',
+                            data: [30, 100, 20, 10, 0],
+                            fill: true,
+                            backgroundColor: 'rgba(236, 72, 153, 0.2)', // Pink
+                            borderColor: '#EC4899',
+                            hidden: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#E5E7EB' },
+                            grid: { color: '#E5E7EB' },
+                            pointLabels: { font: { size: 12 } },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' }
+                    }
+                }
+            });
+        }
+
+        function updateRadar() {
+            const showTinker = document.getElementById('comp-tinkercad').checked;
+            const showKits = document.getElementById('comp-kits').checked;
+
+            radarChartInst.data.datasets[1].hidden = !showTinker;
+            radarChartInst.data.datasets[2].hidden = !showKits;
+            radarChartInst.update();
+        }
+
+        // --- 5. FINANCIALS LOGIC ---
+        function updateFinancials(view) {
+            const container = document.getElementById('financial-chart-container');
+            const title = document.getElementById('fin-chart-title');
+            
+            // Toggle Tab Styles
+            const btnRev = document.getElementById('tab-revenue');
+            const btnGrow = document.getElementById('tab-growth');
+
+            if(view === 'revenue') {
+                btnRev.className = "px-4 py-2 rounded-md text-sm font-bold bg-gray-100 text-gray-900 hover:bg-gray-200 transition";
+                btnGrow.className = "px-4 py-2 rounded-md text-sm font-bold text-gray-500 hover:text-gray-900 transition";
+                title.innerText = "Revenue Composition";
+                
+                // Destroy Plotly if exists, Create Chart.js
+                Plotly.purge(container); // Remove any plotly graph
+                container.innerHTML = '<canvas id="revenueMixChart"></canvas>'; // Reset canvas
+                
+                const ctx = document.getElementById('revenueMixChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['SaaS Subs (AI Pro)', 'Marketplace Fees', 'Hardware Sales'],
+                        datasets: [{
+                            data: [40, 25, 35],
+                            backgroundColor: ['#0EA5E9', '#10B981', '#F59E0B'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right' } }
+                    }
+                });
+
+            } else {
+                btnGrow.className = "px-4 py-2 rounded-md text-sm font-bold bg-gray-100 text-gray-900 hover:bg-gray-200 transition";
+                btnRev.className = "px-4 py-2 rounded-md text-sm font-bold text-gray-500 hover:text-gray-900 transition";
+                title.innerText = "5-Year Revenue Projection ($M)";
+                
+                // Clear container for Plotly
+                container.innerHTML = ''; 
+                
+                const trace1 = {
+                    x: ['Y1', 'Y2', 'Y3', 'Y4', 'Y5'],
+                    y: [0.5, 3.2, 12.5, 45, 120],
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    fill: 'tozeroy',
+                    line: {color: '#0EA5E9', width: 3},
+                    marker: {size: 8}
+                };
+                
+                const layout = {
+                    margin: {t: 20, r: 20, b: 40, l: 40},
+                    xaxis: { title: 'Year' },
+                    yaxis: { title: 'Revenue ($M)' },
+                    autosize: true
+                };
+                
+                const config = { responsive: true, displayModeBar: false };
+                
+                Plotly.newPlot(container, [trace1], layout, config);
+            }
+        }
+
+
+        // --- INIT ALL ---
+        window.onload = function() {
+            initFrictionChart();
+            initMarketChart();
+            activateFlywheel(1); // Init Flywheel text
+            initRadarChart();
+            updateFinancials('revenue'); // Init Financials
+        };
+
+    </script>
+</body>
+</html>
