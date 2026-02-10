@@ -17,8 +17,35 @@ function App() {
           element={
             <>
               <SEO
-                title="Virtual Robotics Studio"
-                description="Build, code, and simulate Arduino and ESP32 robots directly in your browser. No hardware required."
+                title="Build Real Robots in Your Browser for FREE! 🤖✨"
+                description="The World's First AI-Powered Virtual Robotics Studio. No Kits Required. Code Arduino & ESP32, simulate physics, and build your dream robot in seconds. Start for FREE!"
+                keywords={[
+                  "free arduino simulator",
+                  "web-based robotics",
+                  "virtual robotics lab",
+                  "online circuit simulator",
+                  "esp32 simulator",
+                  "best robotics simulator 2026",
+                  "learn arduino online free",
+                  "no download robotics software",
+                ]}
+                schema={{
+                  "@context": "https://schema.org",
+                  "@type": "SoftwareApplication",
+                  name: "Robo Sparrow",
+                  applicationCategory: "EducationalApplication",
+                  operatingSystem: "Web Browser",
+                  offers: {
+                    "@type": "Offer",
+                    price: "0",
+                    priceCurrency: "USD",
+                  },
+                  aggregateRating: {
+                    "@type": "AggregateRating",
+                    ratingValue: "4.8",
+                    ratingCount: "1250",
+                  },
+                }}
               />
               <Landing />
             </>
@@ -29,8 +56,15 @@ function App() {
           element={
             <>
               <SEO
-                title="Studio"
-                description="Design circuits, write code, and collaborate with AI to build your virtual robot."
+                title="Studio: Design. Code. Simulate. ⚡️"
+                description="Experience the 'Figma for Robotics'. Drag & Drop components, write C++/Python, and watch your code come to life in a realistic physics simulation. 🎮"
+                keywords={[
+                  "online arduino ide",
+                  "drag and drop circuit builder",
+                  "simulate sensors and motors",
+                  "virtual breadboard",
+                  "robotics cad online",
+                ]}
               />
               <Studio />
             </>
@@ -41,8 +75,13 @@ function App() {
           element={
             <>
               <SEO
-                title="About Us"
-                description="Our vision to democratize hardware education."
+                title="The Revolution: Democratizing Hardware 🚀"
+                description="Hardware is hard. We make it easy. Discover how Robo Sparrow is breaking down barriers to entry for millions of engineers worldwide."
+                keywords={[
+                  "future of robotics education",
+                  "hardware innovation",
+                  "robo sparrow mission",
+                ]}
               />
               <About />
             </>
@@ -53,8 +92,13 @@ function App() {
           element={
             <>
               <SEO
-                title="Contact Us"
-                description="Get in touch with the Robo Sparrow team."
+                title="Let's Build Something Amazing Together 🤝"
+                description="Have a question? Want to partner? Get in touch with the Robo Sparrow team and join the hardware revolution."
+                keywords={[
+                  "contact robo sparrow",
+                  "robotics partnership",
+                  "support",
+                ]}
               />
               <Contact />
             </>

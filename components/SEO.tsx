@@ -6,6 +6,8 @@ interface SEOProps {
   description: string;
   image?: string;
   url?: string;
+  keywords?: string[];
+  schema?: Record<string, any>;
 }
 
 const SEO: React.FC<SEOProps> = ({
@@ -13,14 +15,40 @@ const SEO: React.FC<SEOProps> = ({
   description,
   image = "/og-image.png", // Default image if we have one
   url = "https://therobosparrow.com",
+  keywords = [],
+  schema,
 }) => {
   const fullTitle = `${title} | Robo Sparrow`;
+  const defaultKeywords = [
+    "robotics",
+    "simulation",
+    "arduino",
+    "esp32",
+    "virtual lab",
+    "coding",
+    "stem education",
+    "iot",
+    "electronics",
+    "web-based simulation",
+  ];
+  const allKeywords = [...new Set([...defaultKeywords, ...keywords])].join(
+    ", ",
+  );
 
   return (
     <Helmet>
       {/* Standard metadata tags */}
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
+      <meta name="keywords" content={allKeywords} />
+      <meta name="author" content="Robo Sparrow Studio" />
+      <meta name="robots" content="index, follow" />
+      <meta name="theme-color" content="#030712" />
+
+      {/* Structured Data (JSON-LD) */}
+      {schema && (
+        <script type="application/ld+json">{JSON.stringify(schema)}</script>
+      )}
 
       {/* Open Graph tags (Facebook/Linkedin) */}
       <meta property="og:title" content={fullTitle} />
