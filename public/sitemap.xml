@@ -2,14 +2,38 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://therobosparrow.com/</loc>
-    <lastmod>2025-02-09</lastmod>
+    <lastmod>2026-02-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://therobosparrow.com/studio</loc>
-    <lastmod>2025-02-09</lastmod>
+    <lastmod>2026-02-11</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://therobosparrow.com/about</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://therobosparrow.com/contact</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://therobosparrow.com/investors/dashboard/</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://therobosparrow.com/investors/plan/</loc>
+    <lastmod>2026-02-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
   </url>
 </urlset>
