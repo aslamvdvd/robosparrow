@@ -275,11 +275,26 @@ const Landing: React.FC<Props> = () => {
                 className="rounded-2xl border border-gray-800 bg-gray-900/70 p-4 shadow-2xl transform transition-transform will-change-transform"
               >
                 <div className="flex items-center justify-between text-xs text-gray-400 px-2 pb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2.5 w-2.5 rounded-full bg-red-600" />
-                    <div className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                    <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                    <div className="ml-3 text-xs">Studio — live</div>
+                  {/* Logo area */}
+                  <div
+                    className="flex items-center gap-2 cursor-pointer z-50"
+                    onClick={onStart}
+                  >
+                    <div className="relative group">
+                      {/* "use some light color" -> slight glowing backing or just raw image if good?
+                          User said "logo has no background, use some light color".
+                          I'll add a subtle light backdrop to ensuring visibility if it's dark
+                       */}
+                      <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <img
+                        src="/logos/logo.png"
+                        alt="Robo Sparrow"
+                        className="h-10 w-auto relative z-10"
+                      />
+                    </div>
+                    <span className="font-bold text-xl tracking-tight text-gray-100">
+                      Robo <span className="text-blue-500">Sparrow</span>
+                    </span>
                   </div>
                   <div className="text-xs text-gray-500">v0.1.alpha</div>
                 </div>

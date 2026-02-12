@@ -22,8 +22,17 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   return (
     <div className="w-16 flex flex-col items-center py-4 bg-gray-900 border-r border-gray-800 gap-4 z-20">
-      <div className="p-2 bg-blue-600 rounded-lg shadow-lg shadow-blue-500/20 mb-4">
-        <Terminal className="text-white w-6 h-6" />
+      <div className="p-2 mb-4">
+        <div className="relative group cursor-pointer">
+          <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+          <a href="/">
+            <img
+              src="/logos/logo.png"
+              alt="Robo Sparrow"
+              className="w-8 h-8 relative z-10"
+            />
+          </a>
+        </div>
       </div>
 
       <button

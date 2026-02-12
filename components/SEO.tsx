@@ -13,7 +13,7 @@ interface SEOProps {
 const SEO: React.FC<SEOProps> = ({
   title,
   description,
-  image = "/og-image.png", // Default image if we have one
+  image = "/logos/logo.png", // Default image if we have one
   url = "https://therobosparrow.com",
   keywords = [],
   schema,
