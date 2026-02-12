@@ -31,20 +31,34 @@ function App() {
                 ]}
                 schema={{
                   "@context": "https://schema.org",
-                  "@type": "SoftwareApplication",
-                  name: "Robo Sparrow",
-                  applicationCategory: "EducationalApplication",
-                  operatingSystem: "Web Browser",
-                  offers: {
-                    "@type": "Offer",
-                    price: "0",
-                    priceCurrency: "USD",
-                  },
-                  aggregateRating: {
-                    "@type": "AggregateRating",
-                    ratingValue: "4.8",
-                    ratingCount: "1250",
-                  },
+                  "@graph": [
+                    {
+                      "@type": "SoftwareApplication",
+                      name: "Robo Sparrow",
+                      applicationCategory: "EducationalApplication",
+                      operatingSystem: "Web Browser",
+                      offers: {
+                        "@type": "Offer",
+                        price: "0",
+                        priceCurrency: "USD",
+                      },
+                      aggregateRating: {
+                        "@type": "AggregateRating",
+                        ratingValue: "4.8",
+                        ratingCount: "1250",
+                      },
+                    },
+                    {
+                      "@type": "Organization",
+                      name: "Robo Sparrow",
+                      url: "https://therobosparrow.com",
+                      logo: "https://therobosparrow.com/logos/logo.png",
+                      sameAs: [
+                        "https://github.com/aslamvdvd/robosparrow",
+                        // Add other social links here if available
+                      ],
+                    },
+                  ],
                 }}
               />
               <Landing />
