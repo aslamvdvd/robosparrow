@@ -41,6 +41,7 @@ const SEO: React.FC<SEOProps> = ({
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
       <meta name="keywords" content={allKeywords} />
+      <meta name="image" content={image}/>
       <meta name="author" content="Robo Sparrow Studio" />
       <meta name="robots" content="index, follow" />
       <meta name="theme-color" content="#030712" />
